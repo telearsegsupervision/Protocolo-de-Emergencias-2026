@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeleArseg · Protocolo · Pérdida de Visual</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg-void:#05070f;
+    --bg-panel:rgba(11,17,38,0.74);
+    --bg-panel-solid:#0b1126;
+    --line:rgba(126,158,224,0.22);
+    --line-strong:rgba(126,158,224,0.45);
+    --cyan:#33e7ff;
+    --cyan-dim:rgba(51,231,255,0.16);
+    --amber:#ffb020;
+    --amber-dim:rgba(255,176,32,0.16);
+    --green:#3ee08a;
+    --green-dim:rgba(62,224,138,0.14);
+    --text-hi:#eef3ff;
+    --text-mid:#a9b6d8;
+    --text-low:#66739a;
+    --radius:2px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg-void);
+    color:var(--text-hi);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  .bg-grid{
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:56px 56px;
+    opacity:0.12;
+    z-index:0;
+    mask-image:radial-gradient(ellipse at center, black 0%, transparent 75%);
+  }
+  .bg-vignette{
+    position:fixed; inset:0; z-index:0;
+    background:radial-gradient(ellipse at 50% 0%, rgba(51,231,255,0.06) 0%, transparent 55%),
+               radial-gradient(ellipse at 50% 100%, rgba(255,176,32,0.04) 0%, transparent 55%);
+  }
+
+  .scanline{
+    position:fixed; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity:0.35;
+    z-index:2;
+    animation:sweep 7s linear infinite;
+    box-shadow:0 0 12px 1px var(--cyan);
+  }
+  @keyframes sweep{
+    0%{ top:0%; opacity:0; }
+    5%{ opacity:.5; }
+    50%{ opacity:.35; }
+    95%{ opacity:0; }
+    100%{ top:100%; opacity:0; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .scanline{animation:none; display:none;}
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  .statusbar{
+    position:relative; z-index:5;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 28px;
+    border-bottom:1px solid var(--line);
+    background:rgba(5,7,15,0.55);
+    backdrop-filter:blur(6px);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:0.06em;
+    color:var(--text-mid);
+    flex-wrap:wrap;
+    gap:8px 20px;
+  }
+  .statusbar .seg{display:flex; align-items:center; gap:8px;}
+  .statusbar a.back{
+    display:flex; align-items:center; gap:7px;
+    color:var(--text-mid);
+    text-decoration:none;
+    transition:color .22s;
+  }
+  .statusbar a.back:hover{ color:var(--cyan); }
+  .statusbar a.back svg{ width:13px; height:13px; }
+  .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 8px 1px var(--amber);
+    animation:pulse 2s ease-in-out infinite;
+    flex-shrink:0;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1; transform:scale(1);}
+    50%{opacity:.55; transform:scale(0.8);}
+  }
+  .statusbar strong{color:var(--text-hi); font-weight:500;}
+
+  .hero{
+    position:relative; z-index:5;
+    display:flex; flex-direction:column; align-items:center;
+    text-align:center;
+    padding:52px 24px 30px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.28em;
+    color:var(--amber);
+    margin-bottom:14px;
+    text-transform:uppercase;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before, .eyebrow::after{
+    content:'';
+    width:28px; height:1px;
+    background:linear-gradient(90deg, transparent, var(--amber));
+  }
+  .eyebrow::after{ background:linear-gradient(90deg, var(--amber), transparent); }
+
+  h1{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:700;
+    font-size:clamp(30px, 5.5vw, 54px);
+    letter-spacing:0.01em;
+    color:var(--text-hi);
+    line-height:1.05;
+    text-shadow:0 0 40px rgba(255,176,32,0.12);
+  }
+  .hero p{
+    margin-top:14px;
+    max-width:640px;
+    color:var(--text-mid);
+    font-size:14.5px;
+    line-height:1.65;
+  }
+
+  .legend{
+    position:relative; z-index:5;
+    display:flex; flex-wrap:wrap;
+    justify-content:center;
+    gap:10px 22px;
+    max-width:920px;
+    margin:26px auto 0;
+    padding:14px 22px;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    backdrop-filter:blur(4px);
+  }
+  .legend .item{
+    display:flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.05em;
+    color:var(--text-mid);
+    text-transform:uppercase;
+  }
+  .legend .sw{ width:12px; height:12px; border-radius:2px; flex-shrink:0; }
+  .sw-start{ background:var(--cyan-dim); border:1.5px solid var(--cyan); }
+  .sw-decision{ background:var(--amber-dim); border:1.5px solid var(--amber); }
+  .sw-process{ background:rgba(169,182,216,0.08); border:1.5px solid var(--line-strong); }
+  .sw-action{ background:var(--green-dim); border:1.5px solid var(--green); }
+
+  .diagram-wrap{
+    position:relative; z-index:5;
+    max-width:1320px;
+    margin:36px auto 10px;
+    padding:0 20px;
+  }
+  .diagram-frame{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:26px 18px;
+    backdrop-filter:blur(4px);
+    overflow-x:auto;
+  }
+  .diagram-frame svg{
+    display:block;
+    min-width:1180px;
+    width:100%;
+    height:auto;
+    margin:0 auto;
+  }
+
+  .node-box{ font-family:'Inter', sans-serif; }
+  .node-title{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:600;
+    fill:var(--text-hi);
+  }
+  .edge-label{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:500;
+    fill:var(--text-hi);
+  }
+
+  .resources{
+    position:relative; z-index:5;
+    max-width:1320px;
+    margin:46px auto 20px;
+    padding:0 20px;
+  }
+  .resources-label{
+    display:flex; align-items:center; gap:12px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--text-low);
+    text-transform:uppercase;
+    margin-bottom:18px;
+  }
+  .resources-label::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+  .res-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
+  }
+  @media (max-width:860px){ .res-grid{ grid-template-columns:1fr; } }
+
+  .res-card{
+    position:relative;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px 18px 18px;
+    display:flex; flex-direction:column; gap:10px;
+    text-decoration:none;
+    color:inherit;
+    backdrop-filter:blur(4px);
+    transition:transform .26s cubic-bezier(.2,.8,.2,1), border-color .26s, box-shadow .26s;
+  }
+  .res-card:hover{
+    transform:translateY(-4px);
+    border-color:var(--cyan);
+    box-shadow:0 10px 30px -8px rgba(51,231,255,0.3);
+  }
+  .res-card .rtag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:9.5px;
+    letter-spacing:0.12em;
+    color:var(--cyan);
+    text-transform:uppercase;
+  }
+  .res-card .rtitle{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    color:var(--text-hi);
+  }
+  .res-card .rdesc{
+    font-size:12.5px;
+    color:var(--text-mid);
+    line-height:1.5;
+  }
+  .res-card .rarrow{
+    margin-top:auto;
+    display:flex; align-items:center; gap:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.08em;
+    color:var(--text-low);
+    text-transform:uppercase;
+  }
+  .res-card:hover .rarrow{ color:var(--cyan); }
+  .res-card .rarrow svg{ width:11px; height:11px; }
+
+  footer{
+    position:relative; z-index:5;
+    text-align:center;
+    padding:26px 20px 34px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    color:var(--text-low);
+    border-top:1px solid var(--line);
+    margin-top:20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-vignette"></div>
+<div class="scanline"></div>
+
+<div class="statusbar">
+  <a class="back" href="plan-emergencia-2026.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    VOLVER AL PANEL
+  </a>
+  <div class="seg"><span class="dot"></span><strong>PROTOCOLO ACTIVO</strong></div>
+  <div class="seg" id="clock">— — : — — : — —</div>
+</div>
+
+<div class="hero">
+  <div class="eyebrow">Protocolo de Contingencia</div>
+  <h1>PÉRDIDA DE VISUAL</h1>
+  <p>Ruta de diagnóstico y escalamiento ante la pérdida de imagen en cualquier estación monitoreada. Sigue el flujo en orden: primero se descarta una causa de red o energía, y si la conexión está estable, se procede a la verificación física del equipo en sitio.</p>
+</div>
+
+<div class="legend">
+  <div class="item"><span class="sw sw-start"></span>Inicio del protocolo</div>
+  <div class="item"><span class="sw sw-decision"></span>Punto de decisión</div>
+  <div class="item"><span class="sw sw-process"></span>Acción de diagnóstico</div>
+  <div class="item"><span class="sw sw-action"></span>Resolución / escalamiento</div>
+</div>
+
+<div class="diagram-wrap">
+  <div class="diagram-frame">
+    <svg viewBox="0 0 1500 1130" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#7ea0d8"/>
+        </marker>
+        <marker id="arrowCyan" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#33e7ff"/>
+        </marker>
+        <marker id="arrowGreen" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#3ee08a"/>
+        </marker>
+      </defs>
+
+      <!-- ===================== CONNECTORS ===================== -->
+      <g fill="none" stroke="#7ea0d8" stroke-width="2" opacity="0.85">
+        <!-- start -> propiedad cliente -->
+        <path d="M 390,60 L 260,60" marker-end="url(#arrow)"/>
+        <!-- start -> renting -->
+        <path d="M 500,90 L 500,145" marker-end="url(#arrow)"/>
+        <!-- renting -> diamond -->
+        <path d="M 500,200 L 500,260" marker-end="url(#arrow)"/>
+        <!-- diamond -> ping web dude (SI) -->
+        <path d="M 610,330 L 735,300" marker-end="url(#arrow)"/>
+        <!-- ping -> solicitar reinicio -->
+        <path d="M 925,300 L 1025,300" marker-end="url(#arrow)"/>
+        <!-- solicitar reinicio loops back up into diamond -->
+        <path d="M 1120,270 L 1120,140 L 610,140 L 610,300" marker-end="url(#arrowCyan)" stroke="#33e7ff" stroke-dasharray="5 4"/>
+        <!-- diamond -> diamond2 (NO) -->
+        <path d="M 500,400 L 500,450" marker-end="url(#arrow)"/>
+        <!-- diamond2 -> general -->
+        <path d="M 390,520 L 240,520" marker-end="url(#arrow)"/>
+        <!-- diamond2 -> foto/videos -->
+        <path d="M 610,505 L 720,490" marker-end="url(#arrow)"/>
+        <!-- diamond2 -> enviar info (direct) -->
+        <path d="M 500,590 L 500,765" marker-end="url(#arrow)"/>
+        <!-- foto/videos -> agotamiento baterias -->
+        <path d="M 940,490 L 1070,490" marker-end="url(#arrow)"/>
+        <!-- foto/videos -> error inversor -->
+        <path d="M 830,522 L 830,600" marker-end="url(#arrow)"/>
+        <!-- general -> camara/sector -->
+        <path d="M 150,548 L 150,630" marker-end="url(#arrow)"/>
+        <!-- error inversor -> daño equipos -->
+        <path d="M 830,630 L 830,770" marker-end="url(#arrow)"/>
+        <!-- agotamiento -> noche -->
+        <path d="M 1130,522 L 1080,630" marker-end="url(#arrow)"/>
+        <!-- agotamiento -> dia -->
+        <path d="M 1230,522 L 1290,630" marker-end="url(#arrow)"/>
+        <!-- camara/sector -> verificar ptz -->
+        <path d="M 150,658 L 150,765" marker-end="url(#arrow)"/>
+        <!-- verificar ptz -> enviar info -->
+        <path d="M 265,800 L 385,800" marker-end="url(#arrow)"/>
+        <!-- daño equipos -> enviar info -->
+        <path d="M 735,800 L 615,800" marker-end="url(#arrow)"/>
+        <!-- noche -> coordinar reinicio post -->
+        <path d="M 1080,658 L 1080,762" marker-end="url(#arrowGreen)" stroke="#3ee08a"/>
+        <!-- dia loops back up to solicitar reinicio -->
+        <path d="M 1330,645 L 1420,645 L 1420,300 L 1215,300" marker-end="url(#arrowCyan)" stroke="#33e7ff" stroke-dasharray="5 4"/>
+      </g>
+
+      <!-- ===================== EDGE LABELS ===================== -->
+      <g class="edge-label" font-size="12">
+        <text x="655" y="308" fill="#ffb020">SÍ</text>
+        <text x="512" y="430" fill="#ffb020">NO</text>
+        <text x="160" y="600" fill="#ffb020">NO</text>
+        <text x="845" y="700" fill="#ffb020">O</text>
+      </g>
+
+      <!-- ===================== NODES ===================== -->
+      <!-- START -->
+      <g class="node-box">
+        <rect x="390" y="30" width="220" height="60" rx="2" fill="#0b1126" stroke="#33e7ff" stroke-width="1.6"/>
+        <text x="500" y="65" text-anchor="middle" class="node-title" font-size="15">PÉRDIDA DE VISUAL</text>
+      </g>
+
+      <!-- PROPIEDAD DEL CLIENTE -->
+      <g class="node-box">
+        <rect x="60" y="30" width="200" height="60" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="160" y="58" text-anchor="middle" class="node-title" font-size="12.5">PROPIEDAD DEL</text>
+        <text x="160" y="76" text-anchor="middle" class="node-title" font-size="12.5">CLIENTE</text>
+      </g>
+
+      <!-- RENTING -->
+      <g class="node-box">
+        <rect x="410" y="145" width="180" height="55" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="500" y="178" text-anchor="middle" class="node-title" font-size="13.5">RENTING</text>
+      </g>
+
+      <!-- DIAMOND: VERIFICAR ENERGIA O INTERNET -->
+      <g class="node-box">
+        <polygon points="500,260 610,330 500,400 390,330" fill="#1a1508" stroke="#ffb020" stroke-width="1.6"/>
+        <text x="500" y="322" text-anchor="middle" class="node-title" font-size="11.5">VERIFICAR ENERGÍA</text>
+        <text x="500" y="338" text-anchor="middle" class="node-title" font-size="11.5">O INTERNET</text>
+      </g>
+
+      <!-- PING WEB DUDE -->
+      <g class="node-box">
+        <rect x="735" y="272" width="190" height="56" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="830" y="298" text-anchor="middle" class="node-title" font-size="12">PING · WEB · DUDE</text>
+        <text x="830" y="313" text-anchor="middle" fill="#a9b6d8" font-size="9.5">(monitoreo Zabbix)</text>
+      </g>
+
+      <!-- SOLICITAR REINICIO -->
+      <g class="node-box">
+        <rect x="1025" y="272" width="190" height="56" rx="2" fill="#0b1608" stroke="#3ee08a" stroke-width="1.6"/>
+        <text x="1120" y="304" text-anchor="middle" class="node-title" font-size="12.5">SOLICITAR REINICIO</text>
+      </g>
+
+      <!-- DIAMOND: COORDINAR VERIFICACION FISICA -->
+      <g class="node-box">
+        <polygon points="500,450 610,520 500,590 390,520" fill="#1a1508" stroke="#ffb020" stroke-width="1.6"/>
+        <text x="500" y="512" text-anchor="middle" class="node-title" font-size="11.5">COORDINAR</text>
+        <text x="500" y="528" text-anchor="middle" class="node-title" font-size="11.5">VERIFICACIÓN FÍSICA</text>
+      </g>
+
+      <!-- GENERAL -->
+      <g class="node-box">
+        <rect x="65" y="492" width="170" height="56" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="150" y="524" text-anchor="middle" class="node-title" font-size="13">GENERAL</text>
+      </g>
+
+      <!-- FOTO / VIDEOS -->
+      <g class="node-box">
+        <rect x="720" y="458" width="220" height="64" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="830" y="484" text-anchor="middle" class="node-title" font-size="11.5">FOTO / VIDEOS DEL</text>
+        <text x="830" y="500" text-anchor="middle" class="node-title" font-size="11.5">ESTADO DE EQUIPOS</text>
+      </g>
+
+      <!-- AGOTAMIENTO DE BATERIAS -->
+      <g class="node-box">
+        <rect x="1070" y="458" width="210" height="64" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="1175" y="484" text-anchor="middle" class="node-title" font-size="11.5">AGOTAMIENTO DE</text>
+        <text x="1175" y="500" text-anchor="middle" class="node-title" font-size="11.5">BATERÍAS</text>
+      </g>
+
+      <!-- CAMARA / SECTOR -->
+      <g class="node-box">
+        <rect x="65" y="630" width="170" height="56" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="150" y="662" text-anchor="middle" class="node-title" font-size="12.5">CÁMARA / SECTOR</text>
+      </g>
+
+      <!-- ERROR INVERSOR -->
+      <g class="node-box">
+        <rect x="735" y="600" width="190" height="56" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="830" y="632" text-anchor="middle" class="node-title" font-size="12.5">ERROR INVERSOR</text>
+      </g>
+
+      <!-- NOCHE -->
+      <g class="node-box">
+        <rect x="990" y="630" width="145" height="56" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="1062" y="662" text-anchor="middle" class="node-title" font-size="13">NOCHE</text>
+      </g>
+
+      <!-- DIA -->
+      <g class="node-box">
+        <rect x="1215" y="630" width="145" height="56" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="1287" y="662" text-anchor="middle" class="node-title" font-size="13">DÍA</text>
+      </g>
+
+      <!-- VERIFICAR PTZ -->
+      <g class="node-box">
+        <rect x="40" y="765" width="225" height="66" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="152" y="791" text-anchor="middle" class="node-title" font-size="11">VERIFICAR CON PTZ O</text>
+        <text x="152" y="807" text-anchor="middle" class="node-title" font-size="11">CÁMARA CERCANA</text>
+      </g>
+
+      <!-- DAÑO EQUIPOS -->
+      <g class="node-box">
+        <rect x="735" y="772" width="190" height="56" rx="2" fill="#0b1126" stroke="#7ea0d8" stroke-width="1.4"/>
+        <text x="830" y="804" text-anchor="middle" class="node-title" font-size="12.5">DAÑO EQUIPOS</text>
+      </g>
+
+      <!-- ENVIAR INFORMACION A GRUPO S/T -->
+      <g class="node-box">
+        <rect x="385" y="765" width="230" height="70" rx="2" fill="#1a1508" stroke="#ffb020" stroke-width="1.6"/>
+        <text x="500" y="792" text-anchor="middle" class="node-title" font-size="11.5">ENVIAR INFORMACIÓN A</text>
+        <text x="500" y="809" text-anchor="middle" class="node-title" font-size="11.5">GRUPO S/T</text>
+      </g>
+
+      <!-- COORDINAR REINICIO POST HORAS DE CARGA SOLAR -->
+      <g class="node-box">
+        <rect x="965" y="762" width="235" height="76" rx="2" fill="#0b1608" stroke="#3ee08a" stroke-width="1.6"/>
+        <text x="1082" y="787" text-anchor="middle" class="node-title" font-size="11">COORDINAR REINICIO</text>
+        <text x="1082" y="803" text-anchor="middle" class="node-title" font-size="11">POST HORAS DE</text>
+        <text x="1082" y="819" text-anchor="middle" class="node-title" font-size="11">CARGA SOLAR</text>
+      </g>
+
+    </svg>
+  </div>
+</div>
+
+<div class="resources">
+  <div class="resources-label">Enlaces directos del protocolo</div>
+  <div class="res-grid">
+    <a class="res-card" href="http://192.168.230.9/zabbix.php?action=dashboard.view" target="_blank" rel="noopener">
+      <div class="rtag">Verificación de red</div>
+      <div class="rtitle">Enlaces TLSG · Zabbix</div>
+      <div class="rdesc">Dashboard de monitoreo para confirmar estado de energía, internet y dispositivos por estación.</div>
+      <div class="rarrow">Abrir dashboard<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+    </a>
+    <a class="res-card" href="https://docs.google.com/spreadsheets/d/1V7Sp4VjlHUYxwHBCzrfenktKQJU--w0E/edit?usp=sharing&ouid=103059502022579081493&rtpof=true&sd=true" target="_blank" rel="noopener">
+      <div class="rtag">Referencia de estaciones</div>
+      <div class="rtitle">Nodos Costanet</div>
+      <div class="rdesc">Listado de nodos de conectividad Costanet por estación, útil al descartar caídas de enlace.</div>
+      <div class="rarrow">Abrir hoja de cálculo<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+    </a>
+    <a class="res-card" href="https://drive.google.com/file/d/1sZWgIvnXgRU7TGBjmR3qUN3WB9APg4zb/view?usp=sharing" target="_blank" rel="noopener">
+      <div class="rtag">Verificación física</div>
+      <div class="rtitle">Protocolo GPS</div>
+      <div class="rdesc">Guía de referencia para la coordinación de traslado y verificación física en sitio.</div>
+      <div class="rarrow">Abrir documento<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+    </a>
+  </div>
+</div>
+
+<footer>TELEARSEG © SISTEMA DE MONITOREO Y SEGURIDAD — PROTOCOLO DE PÉRDIDA DE VISUAL</footer>
+
+<script>
+function tick(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,'0');
+  document.getElementById('clock').textContent =
+    `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} · ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+tick();
+setInterval(tick, 1000);
+</script>
+
+</body>
+</html>

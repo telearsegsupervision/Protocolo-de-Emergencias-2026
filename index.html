@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeleArseg · Portal</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f1c33">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root{
+    --bg-void:#05070f;
+    --bg-panel:rgba(11,17,38,0.74);
+    --line:rgba(126,158,224,0.22);
+    --cyan:#33e7ff;
+    --amber:#ffb020;
+    --text-hi:#eef3ff;
+    --text-mid:#a9b6d8;
+    --text-low:#66739a;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg-void);
+    color:var(--text-hi);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:40px 20px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.28em;
+    color:var(--amber);
+    text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  h1{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:700;
+    font-size:clamp(28px, 5vw, 46px);
+    text-align:center;
+    margin-bottom:36px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:16px;
+    width:100%;
+    max-width:900px;
+  }
+  .card{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:24px 20px;
+    text-decoration:none;
+    color:inherit;
+    backdrop-filter:blur(4px);
+    transition:transform .2s, border-color .2s;
+  }
+  .card:hover{ transform:translateY(-3px); border-color:var(--cyan); }
+  .card .tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.12em;
+    color:var(--cyan);
+    text-transform:uppercase;
+  }
+  .card .title{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:600;
+    font-size:18px;
+    margin-top:8px;
+  }
+  .card .desc{
+    font-size:12.5px;
+    color:var(--text-mid);
+    margin-top:8px;
+    line-height:1.5;
+  }
+  footer{
+    margin-top:40px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color:var(--text-low);
+    letter-spacing:0.08em;
+  }
+</style>
+</head>
+<body>
+  <div class="eyebrow">Sistema de Monitoreo y Seguridad</div>
+  <h1>TELEARSEG · PORTAL</h1>
+  <div class="grid">
+    <a class="card" href="plan-emergencia-2026.html">
+      <div class="tag">Protocolos</div>
+      <div class="title">Plan de Emergencia 2026</div>
+      <div class="desc">Protocolos de contingencia, status de cámaras, novedades y enlaces operativos.</div>
+    </a>
+    <a class="card" href="panel-general-actividades.html">
+      <div class="tag">Monitoreo</div>
+      <div class="title">Panel General de Actividades</div>
+      <div class="desc">Indicadores en vivo de pesca por estación, desde el Google Sheet de status.</div>
+    </a>
+    <a class="card" href="panel-matrices-generales.html">
+      <div class="tag">Matrices</div>
+      <div class="title">Panel TeleArseg · Matrices Generales</div>
+      <div class="desc">Matrices generales de monitoreo e incidentes.</div>
+    </a>
+  </div>
+  <footer>TELEARSEG © SISTEMA DE MONITOREO Y SEGURIDAD</footer>
+</body>
+</html>

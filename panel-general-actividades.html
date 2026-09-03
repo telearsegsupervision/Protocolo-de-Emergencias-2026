@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel General - Status de Pesca</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f1c33">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pesca">
+<style>
+  :root{
+    --bg:#0b1420;
+    --card-dark:#1c2a44;
+    --card-dark-2:#22314f;
+    --text-on-dark:#e7ebf3;
+    --text-on-dark-muted:#9aa7c2;
+    --surface:rgba(17,27,44,0.62);
+    --text-primary:#eef2f7;
+    --text-secondary:#aab6cc;
+    --border:rgba(255,255,255,0.14);
+    --track-bg:rgba(255,255,255,0.14);
+    --status-critical:#e05a52;
+    --status-good:#2fbf72;
+    --series-blue:#4f95e8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background-color:var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    color:var(--text-primary);
+    min-height:100vh;
+  }
+  .bg-photo{
+    position:fixed;
+    inset:-24px;
+    background:url('camaroneras.jpg') center/cover no-repeat;
+    filter:blur(2.5px) saturate(1.08);
+    z-index:-2;
+  }
+  .bg-scrim{
+    position:fixed;
+    inset:0;
+    background:linear-gradient(180deg, rgba(6,12,22,0.82) 0%, rgba(6,12,22,0.58) 40%, rgba(6,12,22,0.80) 100%);
+    z-index:-1;
+  }
+  header{
+    background:rgba(9,17,31,0.72);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);
+    padding:22px 32px;
+    text-align:center;
+    position:relative;
+  }
+  header h1{
+    margin:0;
+    font-size:20px;
+    letter-spacing:2.5px;
+    font-weight:700;
+    color:#ffffff;
+    text-transform:uppercase;
+  }
+  header .subtitle{
+    margin-top:4px;
+    font-size:11px;
+    letter-spacing:1.5px;
+    color:#8fa0c2;
+    text-transform:uppercase;
+  }
+  .live-badge-wrap{
+    position:absolute;
+    right:24px;
+    top:50%;
+    transform:translateY(-50%);
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:6px;
+  }
+  .live-badge{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:11px;
+    color:#8fa0c2;
+    letter-spacing:0.5px;
+  }
+  .sheet-btn{
+    display:inline-block;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color:#7fd490;
+    text-decoration:none;
+    border:1px solid rgba(127,212,144,0.4);
+    border-radius:6px;
+    padding:3px 10px;
+    background:rgba(127,212,144,0.08);
+    transition:background .15s;
+  }
+  .sheet-btn:hover{background:rgba(127,212,144,0.2);}
+  .live-dot{width:8px;height:8px;border-radius:50%;background:var(--status-good);box-shadow:0 0 0 0 rgba(12,163,12,0.6);animation:pulse 2s infinite;}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(12,163,12,0.5);}
+    70%{box-shadow:0 0 0 6px rgba(12,163,12,0);}
+    100%{box-shadow:0 0 0 0 rgba(12,163,12,0);}
+  }
+  .wrap{
+    max-width:1280px;
+    margin:0 auto;
+    padding:28px 24px 40px;
+  }
+  #statusBanner{
+    display:none;
+    margin:0 0 16px;
+    padding:12px 20px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:600;
+  }
+  #statusBanner.error{
+    display:block;
+    background:#fde8e8;
+    color:#a12626;
+    border:1px solid #f3c2c2;
+  }
+  .filter-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:20px;
+  }
+  .filter-bar label{
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color:var(--text-secondary);
+  }
+  .filter-bar select,.filter-bar input[type="date"]{
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+    color:var(--text-primary);
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:8px 14px;
+    cursor:pointer;
+  }
+  .filter-bar .clear-btn{
+    font-family:inherit;
+    font-size:12px;
+    font-weight:700;
+    color:var(--series-blue);
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:8px 4px;
+    text-decoration:underline;
+    margin-left:4px;
+  }
+  .kpi-row{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:16px;
+    margin-bottom:28px;
+  }
+  .kpi-card{
+    background:var(--surface);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:20px 20px 18px;
+    color:var(--text-on-dark);
+    box-shadow:0 6px 18px rgba(4,9,18,0.35);
+  }
+  .kpi-card .label{
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--text-on-dark-muted);
+  }
+  .kpi-card .value{
+    font-size:28px;
+    font-weight:800;
+    margin-top:10px;
+    line-height:1;
+  }
+  .kpi-card.total .value{color:#ffffff;}
+  .kpi-card.expuesto .value,.kpi-card.pct-exp .value{color:#e37e7e;}
+  .kpi-card.interno .value,.kpi-card.pct-int .value{color:#7fd490;}
+
+  .section-title{
+    font-size:14px;
+    font-weight:800;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color:var(--text-primary);
+    margin:0 0 14px;
+  }
+
+  .station-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+    margin-bottom:28px;
+  }
+  .station-card{
+    display:block;
+    background:var(--surface);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:20px;
+    text-decoration:none;
+    color:inherit;
+    box-shadow:0 6px 18px rgba(4,9,18,0.3);
+    transition:transform .12s ease, box-shadow .12s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .station-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 22px rgba(15,28,51,0.14);
+  }
+  .station-card .top-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .station-card .station-name{
+    font-size:15px;
+    font-weight:800;
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+    color:var(--text-primary);
+  }
+  .station-card .status-dot{
+    width:11px;height:11px;border-radius:50%;flex:none;
+  }
+  .station-card .metric-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .station-card .metric-label{
+    font-size:11px;
+    color:var(--text-secondary);
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+  }
+  .station-card .metric-value{
+    font-size:20px;
+    font-weight:800;
+    color:var(--text-primary);
+  }
+  .station-card .pct-value{
+    font-size:13px;
+    font-weight:800;
+  }
+  .station-card .bar{
+    margin-top:12px;
+    height:6px;
+    border-radius:3px;
+    background:var(--track-bg);
+    overflow:hidden;
+  }
+  .station-card .bar span{
+    display:block;
+    height:100%;
+    border-radius:3px;
+    background:var(--status-critical);
+  }
+  .station-card .arrow{
+    position:absolute;
+    top:16px;right:16px;
+    font-size:14px;
+    color:var(--text-secondary);
+  }
+
+  footer{
+    text-align:center;
+    font-size:11px;
+    color:var(--text-secondary);
+    padding:6px 0 28px;
+  }
+</style>
+</head>
+<body>
+<div class="bg-photo"></div>
+<div class="bg-scrim"></div>
+<header>
+  <h1>Panel General - Status de Pesca</h1>
+  <div class="subtitle">Monitoreo de Camaroneras &middot; 8 Estaciones</div>
+  <div class="live-badge-wrap">
+    <div class="live-badge"><span class="live-dot"></span><span id="liveLabel">Conectando&hellip;</span></div>
+    <a class="sheet-btn" href="https://docs.google.com/spreadsheets/d/1wJUa34FlFLvsA7wvMKLWbGZfMnQSs0YOf0sm8ZzW61w/edit?usp=sharing" target="_blank" rel="noopener">Sheet</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="statusBanner"></div>
+
+  <div class="filter-bar">
+    <label for="mesFilter">Mes</label>
+    <select id="mesFilter"><option value="">Todos los meses</option></select>
+    <label for="turnoFilter">Turno</label>
+    <select id="turnoFilter">
+      <option value="">Todos los turnos</option>
+      <option value="DIURNO">Diurno</option>
+      <option value="NOCTURNO">Nocturno</option>
+    </select>
+    <label for="diaFilter">D&iacute;a</label>
+    <input type="date" id="diaFilter">
+    <label for="laborFilter">Actividad</label>
+    <select id="laborFilter"><option value="">Todas las actividades</option></select>
+    <button type="button" id="clearFiltersBtn" class="clear-btn">Limpiar filtros</button>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card total">
+      <div class="label">Total Registros</div>
+      <div class="value" id="kpiTotal">&mdash;</div>
+    </div>
+    <div class="kpi-card expuesto">
+      <div class="label">Expuesto</div>
+      <div class="value" id="kpiExpuesto">&mdash;</div>
+    </div>
+    <div class="kpi-card interno">
+      <div class="label">Interno</div>
+      <div class="value" id="kpiInterno">&mdash;</div>
+    </div>
+    <div class="kpi-card pct-exp">
+      <div class="label">% Expuesto</div>
+      <div class="value" id="kpiPctExp">&mdash;</div>
+    </div>
+    <div class="kpi-card pct-int">
+      <div class="label">% Interno</div>
+      <div class="value" id="kpiPctInt">&mdash;</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Estaciones &middot; Clic para ver el detalle</h2>
+  <div class="station-grid" id="stationGrid"></div>
+
+  <a class="station-card" id="verTodasLink" href="dashboard-pesca.html" style="max-width:320px;display:flex;align-items:center;justify-content:center;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--series-blue);">
+    Ver Todas las Estaciones &rarr;
+  </a>
+</div>
+
+<footer id="footerText">Cargando datos&hellip;</footer>
+
+<script>
+(function (global) {
+  const SHEET_ID = '1wJUa34FlFLvsA7wvMKLWbGZfMnQSs0YOf0sm8ZzW61w';
+  const SHEET_NAME = 'STATUS PESCA';
+  const REFRESH_MS = 45000;
+  const STATION_COUNT = 8;
+  const MONTH_ORDER = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  let callbackSeq = 0;
+
+  function monthSortKey(mes) {
+    const parts = (mes || '').split(' ');
+    const year = parseInt(parts[1], 10) || 0;
+    const idx = MONTH_ORDER.indexOf(parts[0]);
+    return year * 100 + (idx === -1 ? 99 : idx);
+  }
+
+  function stripAccents(s) {
+    return (s === null || s === undefined ? '' : s.toString())
+      .normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]', 'g'), '').toLowerCase().trim();
+  }
+
+  // The date column (A) has no header label, so it's addressed by fixed position.
+  function toISODate(raw) {
+    const m = /Date\((\d+),(\d+),(\d+)\)/.exec(raw || '');
+    if (!m) return '';
+    const yyyy = m[1];
+    const mm = String(parseInt(m[2], 10) + 1).padStart(2, '0');
+    const dd = String(m[3]).padStart(2, '0');
+    return yyyy + '-' + mm + '-' + dd;
+  }
+
+  // Fallback for rows where the MES column is empty in the sheet: derive it from the date.
+  function monthFromDate(raw) {
+    const m = /Date\((\d+),(\d+)/.exec(raw || '');
+    if (!m) return '';
+    const monthName = MONTH_ORDER[parseInt(m[2], 10)];
+    return monthName ? monthName + ' ' + m[1] : '';
+  }
+
+  function buildIdx(norm) {
+    const camI = norm.findIndex(v => v.includes('camaronera'));
+    const semI = norm.findIndex(v => v.includes('semaforo'));
+    if (camI === -1 || semI === -1) return null;
+    return {
+      camaronera: camI,
+      semaforo: semI,
+      sector: norm.findIndex(v => v.includes('sector')),
+      estacion: norm.findIndex(v => v.includes('estacion')),
+      jornada: norm.findIndex(v => v.includes('jornada')),
+      mes: norm.findIndex(v => v === 'mes'),
+      labor: norm.findIndex(v => v.includes('labor')),
+    };
+  }
+
+  // Some sheet layouts have proper column headers (table.cols[].label), others
+  // have a stray summary row above the real header that confuses Google's own
+  // auto-detection — there the real header ends up as an ordinary data row.
+  // Try cols[] first, then fall back to scanning rows for one that contains
+  // both "camaronera" and "semaforo" as cell values.
+  function findHeader(table) {
+    const colsNorm = (table.cols || []).map(c => stripAccents(c && c.label));
+    const colsIdx = buildIdx(colsNorm);
+    if (colsIdx) return { rowIndex: -1, idx: colsIdx };
+
+    const rows = table.rows || [];
+    for (let i = 0; i < rows.length; i++) {
+      const c = (rows[i] && rows[i].c) || [];
+      const norm = c.map(cell => stripAccents(cell && cell.v));
+      const idx = buildIdx(norm);
+      if (idx) return { rowIndex: i, idx };
+    }
+    return null;
+  }
+
+  function parseTable(table) {
+    const allRows = table.rows || [];
+    const header = findHeader(table);
+    const rows = [];
+    if (!header) return rows;
+    const idx = header.idx;
+    allRows.slice(header.rowIndex + 1).forEach(r => {
+      const c = r && r.c ? r.c : [];
+      const cell = (i) => (i >= 0 && c[i] ? c[i].v : null);
+      const semRaw = stripAccents(cell(idx.semaforo));
+      if (semRaw !== 'expuesto' && semRaw !== 'interno') return;
+      const estRaw = cell(idx.estacion);
+      const m = /(\d+)/.exec(stripAccents(estRaw));
+      if (!m) return;
+      const estNum = parseInt(m[1], 10);
+      if (!(estNum >= 1 && estNum <= STATION_COUNT)) return;
+      rows.push({
+        camaronera: (cell(idx.camaronera) || 'SIN NOMBRE').toString().trim().toUpperCase(),
+        sector: (cell(idx.sector) || 'OTROS').toString().trim().toUpperCase(),
+        estacion: estNum,
+        jornada: stripAccents(cell(idx.jornada)) === 'diurno' ? 'DIURNO' : 'NOCTURNO',
+        estado: semRaw === 'expuesto' ? 'EXPUESTO' : 'INTERNO',
+        mes: (cell(idx.mes) || '').toString().trim().toUpperCase() || monthFromDate(cell(0)),
+        dia: toISODate(cell(0)),
+        labor: (cell(idx.labor) || 'PESCA').toString().trim().toUpperCase(),
+      });
+    });
+    return rows;
+  }
+
+  function load(onData, onError) {
+    const cbName = '__pescaDataCb' + (callbackSeq++);
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      cleanup();
+      if (onError) onError(new Error('Tiempo de espera agotado al leer el Google Sheet'));
+    }, 15000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      delete global[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    global[cbName] = function (resp) {
+      cleanup();
+      try {
+        onData(parseTable(resp.table));
+      } catch (e) {
+        if (onError) onError(e);
+      }
+    };
+    script.onerror = function () {
+      cleanup();
+      if (onError) onError(new Error('No se pudo cargar el Google Sheet (revisa tu conexión)'));
+    };
+    script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+      '/gviz/tq?sheet=' + encodeURIComponent(SHEET_NAME) +
+      '&tqx=out:json;responseHandler:' + cbName + '&_=' + Date.now();
+    document.body.appendChild(script);
+  }
+
+  function startAutoRefresh(onData, onError, intervalMs) {
+    load(onData, onError);
+    return setInterval(() => load(onData, onError), intervalMs || REFRESH_MS);
+  }
+
+  function aggregate(rows) {
+    const total = rows.length;
+    const expuesto = rows.filter(r => r.estado === 'EXPUESTO').length;
+    const interno = total - expuesto;
+    const pctExpuesto = total ? (expuesto / total * 100) : 0;
+    const pctInterno = total ? (interno / total * 100) : 0;
+
+    const sectorCounts = {};
+    rows.filter(r => r.estado === 'EXPUESTO').forEach(r => {
+      sectorCounts[r.sector] = (sectorCounts[r.sector] || 0) + 1;
+    });
+    const sectorEntries = Object.entries(sectorCounts).sort((a, b) => b[1] - a[1]);
+    const topSectors = sectorEntries.slice(0, 4);
+    const otherSectorsCount = sectorEntries.slice(4).reduce((s, [, c]) => s + c, 0);
+    const sectorRows = topSectors.map(([name, c]) => [name, expuesto ? (c / expuesto * 100) : 0]);
+    if (otherSectorsCount > 0) sectorRows.push(['OTROS', expuesto ? (otherSectorsCount / expuesto * 100) : 0]);
+
+    const jornadaCounts = { DIURNO: 0, NOCTURNO: 0 };
+    rows.forEach(r => { jornadaCounts[r.jornada] = (jornadaCounts[r.jornada] || 0) + 1; });
+
+    const camCounts = {};
+    rows.forEach(r => { camCounts[r.camaronera] = (camCounts[r.camaronera] || 0) + 1; });
+    const topCamaroneras = Object.entries(camCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+    const byEstacion = {};
+    for (let i = 1; i <= STATION_COUNT; i++) byEstacion[i] = { total: 0, expuesto: 0 };
+    rows.forEach(r => {
+      byEstacion[r.estacion].total++;
+      if (r.estado === 'EXPUESTO') byEstacion[r.estacion].expuesto++;
+    });
+
+    return { total, expuesto, interno, pctExpuesto, pctInterno, sectorRows, jornadaCounts, topCamaroneras, byEstacion };
+  }
+
+  global.PescaData = { load, startAutoRefresh, aggregate, REFRESH_MS, STATION_COUNT, MONTH_ORDER, monthSortKey };
+})(window);
+</script>
+<script>
+const CRITICAL = '#d03b3b';
+const GOOD = '#0ca30c';
+let lastRows = [];
+let selectedMonth = '';
+let selectedTurno = '';
+let selectedDia = '';
+let selectedLabor = '';
+
+const mesFilterEl = document.getElementById('mesFilter');
+const turnoFilterEl = document.getElementById('turnoFilter');
+const diaFilterEl = document.getElementById('diaFilter');
+const laborFilterEl = document.getElementById('laborFilter');
+
+mesFilterEl.addEventListener('change', () => {
+  selectedMonth = mesFilterEl.value;
+  render(lastRows);
+});
+turnoFilterEl.addEventListener('change', () => {
+  selectedTurno = turnoFilterEl.value;
+  render(lastRows);
+});
+diaFilterEl.addEventListener('change', () => {
+  selectedDia = diaFilterEl.value;
+  render(lastRows);
+});
+laborFilterEl.addEventListener('change', () => {
+  selectedLabor = laborFilterEl.value;
+  render(lastRows);
+});
+document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+  selectedMonth = '';
+  selectedTurno = '';
+  selectedDia = '';
+  selectedLabor = '';
+  mesFilterEl.value = '';
+  turnoFilterEl.value = '';
+  diaFilterEl.value = '';
+  laborFilterEl.value = '';
+  render(lastRows);
+});
+
+function populateMonthOptions(rows) {
+  const months = Array.from(new Set(rows.map(r => r.mes).filter(Boolean)));
+  months.sort((a, b) => PescaData.monthSortKey(a) - PescaData.monthSortKey(b));
+  const current = mesFilterEl.value;
+  mesFilterEl.innerHTML = '<option value="">Todos los meses</option>' +
+    months.map(m => `<option value="${m}">${m}</option>`).join('');
+  if (months.includes(current)) mesFilterEl.value = current;
+}
+
+function populateLaborOptions(rows) {
+  const labels = { PESCA: 'Pesca', RALEO: 'Raleo' };
+  const labors = Array.from(new Set(rows.map(r => r.labor).filter(Boolean))).sort();
+  const current = laborFilterEl.value;
+  laborFilterEl.innerHTML = '<option value="">Todas las actividades</option>' +
+    labors.map(l => `<option value="${l}">${labels[l] || l}</option>`).join('');
+  if (labors.includes(current)) laborFilterEl.value = current;
+  else if (labors.includes(selectedLabor)) laborFilterEl.value = selectedLabor;
+}
+
+function fmtInt(n) { return n.toLocaleString('es-EC'); }
+function fmtPct(n) { return n.toFixed(1) + '%'; }
+
+function drillQuery() {
+  const parts = [];
+  if (selectedMonth) parts.push('mes=' + encodeURIComponent(selectedMonth));
+  if (selectedTurno) parts.push('turno=' + encodeURIComponent(selectedTurno));
+  if (selectedDia) parts.push('dia=' + encodeURIComponent(selectedDia));
+  if (selectedLabor) parts.push('actividad=' + encodeURIComponent(selectedLabor));
+  return parts;
+}
+
+function render(rows) {
+  lastRows = rows;
+  populateMonthOptions(rows);
+  populateLaborOptions(rows);
+  let filtered = selectedMonth ? rows.filter(r => r.mes === selectedMonth) : rows;
+  if (selectedTurno) filtered = filtered.filter(r => r.jornada === selectedTurno);
+  if (selectedDia) filtered = filtered.filter(r => r.dia === selectedDia);
+  if (selectedLabor) filtered = filtered.filter(r => r.labor === selectedLabor);
+  const agg = PescaData.aggregate(filtered);
+
+  document.getElementById('kpiTotal').textContent = fmtInt(agg.total);
+  document.getElementById('kpiExpuesto').textContent = fmtInt(agg.expuesto);
+  document.getElementById('kpiInterno').textContent = fmtInt(agg.interno);
+  document.getElementById('kpiPctExp').textContent = fmtPct(agg.pctExpuesto);
+  document.getElementById('kpiPctInt').textContent = fmtPct(agg.pctInterno);
+
+  const grid = document.getElementById('stationGrid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= PescaData.STATION_COUNT; i++) {
+    const s = agg.byEstacion[i] || { total: 0, expuesto: 0 };
+    const pct = s.total ? (s.expuesto / s.total * 100) : 0;
+    const dotColor = s.total === 0 ? '#7c8aa3' : (pct >= 50 ? CRITICAL : GOOD);
+    const a = document.createElement('a');
+    a.className = 'station-card';
+    const extraQ = drillQuery().join('&');
+    a.href = 'dashboard-pesca.html?estacion=' + i + (extraQ ? '&' + extraQ : '');
+    a.innerHTML = `
+      <span class="arrow">&#8599;</span>
+      <div class="top-row">
+        <span class="station-name">Estaci&oacute;n ${i}</span>
+        <span class="status-dot" style="background:${dotColor}"></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Registros</span>
+        <span class="metric-value">${fmtInt(s.total)}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">% Expuesto</span>
+        <span class="pct-value" style="color:${dotColor}">${s.total ? fmtPct(pct) : 'Sin datos'}</span>
+      </div>
+      <div class="bar"><span style="width:${pct.toFixed(1)}%;background:${dotColor}"></span></div>
+    `;
+    grid.appendChild(a);
+  }
+  const verTodasQ = drillQuery().join('&');
+  document.getElementById('verTodasLink').href =
+    'dashboard-pesca.html' + (verTodasQ ? '?' + verTodasQ : '');
+
+  const now = new Date();
+  document.getElementById('footerText').textContent =
+    'Datos en vivo desde el Google Sheet · STATUS DE PESCA · Última actualización: ' +
+    now.toLocaleTimeString('es-EC', { hour12: false });
+  document.getElementById('liveLabel').textContent = 'En vivo · ' + now.toLocaleTimeString('es-EC', { hour12: false });
+  document.getElementById('statusBanner').classList.remove('error');
+  document.getElementById('statusBanner').style.display = 'none';
+}
+
+function onError(err) {
+  const banner = document.getElementById('statusBanner');
+  banner.className = 'error';
+  banner.textContent = 'No se pudieron actualizar los datos (' + err.message + '). Mostrando el último dato disponible.';
+  document.getElementById('liveLabel').textContent = 'Reintentando…';
+}
+
+PescaData.startAutoRefresh(render, onError);
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

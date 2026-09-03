@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeleArseg · Ingreso de IP's</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg-void:#05070f;
+    --bg-panel:rgba(11,17,38,0.74);
+    --bg-panel-solid:#0b1126;
+    --line:rgba(126,158,224,0.22);
+    --line-strong:rgba(126,158,224,0.45);
+    --cyan:#33e7ff;
+    --cyan-dim:rgba(51,231,255,0.16);
+    --amber:#ffb020;
+    --amber-dim:rgba(255,176,32,0.16);
+    --green:#3ee08a;
+    --green-dim:rgba(62,224,138,0.14);
+    --text-hi:#eef3ff;
+    --text-mid:#a9b6d8;
+    --text-low:#66739a;
+    --radius:2px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg-void);
+    color:var(--text-hi);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  .bg-grid{
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:56px 56px;
+    opacity:0.12;
+    z-index:0;
+  }
+  .bg-vignette{
+    position:fixed; inset:0;
+    background:radial-gradient(ellipse at 50% 0%, rgba(51,231,255,0.06) 0%, transparent 55%),
+               radial-gradient(ellipse at 50% 100%, rgba(255,176,32,0.05) 0%, transparent 55%);
+    z-index:0;
+  }
+  .scanline{
+    position:fixed; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity:0.35;
+    animation:sweep 7s linear infinite;
+    z-index:1;
+    pointer-events:none;
+  }
+  @keyframes sweep{
+    0%{ top:0%; opacity:0; }
+    5%{ opacity:0.35; }
+    95%{ opacity:0; }
+    100%{ top:100%; opacity:0; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .scanline{animation:none; display:none;}
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  .statusbar{
+    position:relative; z-index:5;
+    display:flex; align-items:center; gap:22px;
+    padding:14px 24px;
+    background:rgba(5,7,15,0.55);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    color:var(--text-mid);
+    flex-wrap:wrap;
+  }
+  .statusbar .back{
+    display:flex; align-items:center; gap:6px;
+    color:var(--text-mid);
+    text-decoration:none;
+    text-transform:uppercase;
+    transition:color .2s;
+    margin-right:auto;
+  }
+  .statusbar .back:hover{ color:var(--cyan); }
+  .statusbar .back svg{ width:13px; height:13px; }
+  .statusbar .seg{display:flex; align-items:center; gap:8px;}
+  .statusbar .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 8px 1px var(--green);
+  }
+  .statusbar strong{color:var(--text-hi); font-weight:500;}
+
+  .hero{
+    position:relative; z-index:5;
+    max-width:1320px;
+    margin:0 auto;
+    padding:48px 20px 8px;
+  }
+  .eyebrow{
+    position:relative;
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--amber);
+    text-transform:uppercase;
+    padding-bottom:10px;
+    margin-bottom:14px;
+  }
+  .eyebrow::after{
+    content:'';
+    position:absolute; left:0; bottom:0;
+    width:64px; height:2px;
+    background:linear-gradient(90deg, var(--amber), transparent);
+  }
+  .hero h1{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:700;
+    font-size:clamp(28px, 4vw, 44px);
+    letter-spacing:0.01em;
+    color:var(--text-hi);
+    margin-bottom:14px;
+  }
+  .hero p{
+    max-width:760px;
+    font-size:14.5px;
+    line-height:1.65;
+    color:var(--text-mid);
+  }
+
+  .notice{
+    position:relative; z-index:5;
+    max-width:1320px;
+    margin:22px auto 0;
+    padding:0 20px;
+  }
+  .notice-box{
+    display:flex; gap:12px; align-items:flex-start;
+    background:var(--amber-dim);
+    border:1px solid rgba(255,176,32,0.4);
+    border-radius:var(--radius);
+    padding:14px 16px;
+    color:var(--text-mid);
+    font-size:12.5px;
+    line-height:1.55;
+  }
+  .notice-box svg{ flex:none; width:16px; height:16px; color:var(--amber); margin-top:2px; }
+  .notice-box strong{ color:var(--text-hi); }
+
+  .stations{
+    position:relative; z-index:5;
+    max-width:1320px;
+    margin:34px auto 20px;
+    padding:0 20px;
+  }
+  .stations-label{
+    display:flex; align-items:center; gap:12px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--text-low);
+    text-transform:uppercase;
+    margin-bottom:18px;
+  }
+  .stations-label::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:16px;
+  }
+  @media (max-width:1080px){ .stat-grid{ grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width:560px){ .stat-grid{ grid-template-columns:1fr; } }
+
+  .stat-card{
+    position:relative;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px 18px 18px;
+    display:flex; flex-direction:column; gap:12px;
+    text-decoration:none;
+    color:inherit;
+    backdrop-filter:blur(4px);
+    transition:transform .26s cubic-bezier(.2,.8,.2,1), border-color .26s, box-shadow .26s;
+    overflow:hidden;
+  }
+  .stat-card::before{
+    content:'';
+    position:absolute; top:0; left:0;
+    width:34px; height:34px;
+    border-top:1.5px solid var(--cyan);
+    border-left:1.5px solid var(--cyan);
+    opacity:0; transition:opacity .26s;
+  }
+  .stat-card:hover::before{ opacity:0.8; }
+  .stat-card:hover{
+    transform:translateY(-4px);
+    border-color:var(--cyan);
+    box-shadow:0 10px 30px -8px rgba(51,231,255,0.3);
+  }
+  .stat-num{
+    display:flex; align-items:center; justify-content:center;
+    width:38px; height:38px;
+    border-radius:50%;
+    border:1.5px solid var(--line-strong);
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    color:var(--cyan);
+    transition:border-color .26s, color .26s;
+  }
+  .stat-card:hover .stat-num{ border-color:var(--cyan); }
+  .stat-title{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:600;
+    font-size:16px;
+    color:var(--text-hi);
+  }
+  .stat-desc{
+    font-size:12px;
+    color:var(--text-mid);
+    line-height:1.5;
+  }
+  .stat-meta{
+    display:flex; align-items:center; gap:7px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.06em;
+    color:var(--text-low);
+    text-transform:uppercase;
+  }
+  .stat-meta .mdot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 6px 1px var(--green);
+  }
+  .stat-arrow{
+    margin-top:auto;
+    display:flex; align-items:center; gap:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.08em;
+    color:var(--text-low);
+    text-transform:uppercase;
+  }
+  .stat-card:hover .stat-arrow{ color:var(--cyan); }
+  .stat-arrow svg{ width:11px; height:11px; }
+
+  footer{
+    position:relative; z-index:5;
+    text-align:center;
+    padding:26px 20px 34px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    color:var(--text-low);
+    border-top:1px solid var(--line);
+    margin-top:20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-vignette"></div>
+<div class="scanline"></div>
+
+<div class="statusbar">
+  <a class="back" href="plan-emergencia-2026.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    VOLVER AL PANEL
+  </a>
+  <div class="seg"><span class="dot"></span><strong>REGISTRO ACTIVO</strong></div>
+  <div class="seg" id="clock">— — : — — : — —</div>
+</div>
+
+<div class="hero">
+  <div class="eyebrow">Generales · Control de Estaciones</div>
+  <h1>INGRESO DE IP'S</h1>
+  <p>Formularios de registro de monitoreo por estación. Cada operador debe completar el formulario correspondiente a su estación al iniciar el registro de cámaras, equipos y accesos de conectividad.</p>
+</div>
+
+<div class="notice">
+  <div class="notice-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+    <div><strong>Nunca envíes contraseñas mediante Google Forms.</strong> Cada formulario registra credenciales de cámara y NVR únicamente para uso interno del equipo de monitoreo; verifica que estás usando el enlace correcto para tu estación antes de completar el registro.</div>
+  </div>
+</div>
+
+<div class="stations">
+  <div class="stations-label">8 estaciones · Formularios de registro</div>
+  <div class="stat-grid" id="statGrid"></div>
+</div>
+
+<footer>TELEARSEG © SISTEMA DE MONITOREO Y SEGURIDAD — INGRESO DE IP'S POR ESTACIÓN</footer>
+
+<script>
+const stations = [
+  { n:1, href:'https://forms.gle/iJFZJA17ahRrSu7j9' },
+  { n:2, href:'https://forms.gle/iopQNYG4AakYK2YN9' },
+  { n:3, href:'https://forms.gle/id9nXzorwKyaqC928' },
+  { n:4, href:'https://forms.gle/Uzzqfe9RLjpMaEmy8' },
+  { n:5, href:'https://forms.gle/Ef5aMKknYMZgcnEh7' },
+  { n:6, href:'https://forms.gle/b2HWfQi7PcBaPzC77' },
+  { n:7, href:'https://forms.gle/Favk2AGocQo5koHz6' },
+  { n:8, href:'https://forms.gle/VyTGtd9warSpsMpG9' },
+];
+
+const grid = document.getElementById('statGrid');
+
+stations.forEach(st => {
+  const el = document.createElement('a');
+  el.className = 'stat-card';
+  el.href = st.href;
+  el.target = '_blank';
+  el.rel = 'noopener';
+  el.innerHTML = `
+    <div class="stat-num">${st.n}</div>
+    <div class="stat-title">REGISTRO ESTACIÓN #${st.n}</div>
+    <div class="stat-desc">Formulario de registro de monitoreo, cámaras y equipos de la estación ${st.n}.</div>
+    <div class="stat-meta"><span class="mdot"></span>FORMULARIO ACTIVO</div>
+    <div class="stat-arrow">Abrir formulario<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+  `;
+  grid.appendChild(el);
+});
+
+function tick(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,'0');
+  document.getElementById('clock').textContent =
+    `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} · ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+tick();
+setInterval(tick, 1000);
+</script>
+
+</body>
+</html>
