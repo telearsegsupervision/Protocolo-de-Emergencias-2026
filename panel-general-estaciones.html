@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel General TeleArseg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#080b12;
+    --bg-2:#0a0e17;
+    --surface:#0d1420;
+    --surface-2:#0a101a;
+    --border:#1c2635;
+    --border-soft:rgba(255,255,255,.07);
+    --text:#eaf0fb;
+    --text-muted:#8b9bb8;
+    --text-faint:#556277;
+    --cyan:#00d4ff;
+    --cyan-soft:rgba(0,212,255,.12);
+    --amber:#eab308;
+    --amber-soft:rgba(234,179,8,.10);
+    --amber-text:#f2cf5b;
+    --ok:#2ecc71;
+    --ok-soft:rgba(46,204,113,.13);
+    --pending:#eab308;
+    --pending-soft:rgba(234,179,8,.13);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+      linear-gradient(180deg, var(--bg-2), var(--bg) 400px);
+    background-size:26px 26px, 100% 100%;
+    background-attachment:fixed;
+    color:var(--text);
+    font-family:"JetBrains Mono","IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:13.5px;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 40px;flex-wrap:wrap;gap:10px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .topbar-left{
+    display:flex;align-items:center;gap:9px;
+    font-size:11px;font-weight:600;color:var(--text-muted);
+    letter-spacing:1.2px;text-transform:uppercase;
+  }
+  .topbar-left svg{width:15px;height:15px;color:var(--cyan);}
+  .topbar-right{display:flex;align-items:center;gap:18px;font-size:11px;letter-spacing:.8px;color:var(--text-muted);}
+  .live-chip{display:flex;align-items:center;gap:7px;font-weight:700;color:var(--ok);text-transform:uppercase;letter-spacing:1px;}
+  .live-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+
+  .content{padding:44px 40px 70px;max-width:1360px;margin:0 auto;}
+
+  .back-link{
+    display:inline-flex;align-items:center;gap:7px;
+    color:var(--text-muted);text-decoration:none;
+    font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+    margin-bottom:18px;transition:color .15s;
+  }
+  .back-link:hover{color:var(--cyan);}
+  .back-link svg{width:13px;height:13px;}
+
+  .breadcrumb{
+    font-size:11px;font-weight:700;color:var(--amber-text);
+    letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;
+  }
+  h1{
+    margin:0 0 18px;font-size:44px;font-weight:800;color:#fff;
+    letter-spacing:.5px;line-height:1.05;
+  }
+  .lede{max-width:760px;color:var(--text-muted);font-size:14px;line-height:1.7;margin:0 0 28px;}
+
+  .banner{
+    display:flex;gap:14px;align-items:flex-start;
+    background:var(--amber-soft);border:1px solid rgba(234,179,8,.3);border-radius:10px;
+    padding:16px 20px;margin-bottom:38px;
+  }
+  .banner svg{width:19px;height:19px;color:var(--amber);flex:0 0 auto;margin-top:1px;}
+  .banner-text{font-size:12.5px;line-height:1.6;color:#d8c483;}
+  .banner-text b{color:#fff;}
+
+  /* ---------- Stat strip ---------- */
+  .stat-strip{display:flex;gap:34px;flex-wrap:wrap;margin-bottom:34px;}
+  .stat-item{display:flex;flex-direction:column;gap:4px;}
+  .stat-item .lbl{font-size:10px;font-weight:700;color:var(--text-faint);letter-spacing:1.4px;text-transform:uppercase;}
+  .stat-item .val{font-size:24px;font-weight:800;color:#fff;}
+  .stat-item .val.ok{color:var(--ok);}
+  .stat-item .val.pending{color:var(--pending);}
+
+  /* ---------- Filters ---------- */
+  .filters{
+    display:flex;flex-direction:column;gap:14px;margin-bottom:8px;
+  }
+  .filters-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .station-pill{
+    border:1px solid var(--border);background:var(--surface-2);color:var(--text-muted);
+    border-radius:6px;padding:8px 14px;font-size:11.5px;font-weight:700;letter-spacing:.4px;
+    cursor:pointer;font-family:inherit;transition:background .15s,color .15s,border-color .15s;
+    display:flex;align-items:center;gap:8px;text-transform:uppercase;
+  }
+  .station-pill:hover{color:var(--text);border-color:var(--cyan);}
+  .station-pill.active{background:var(--cyan-soft);color:var(--cyan);border-color:var(--cyan);}
+  .station-pill .count{background:rgba(255,255,255,.08);border-radius:4px;padding:1px 6px;font-size:10px;}
+  .station-pill.active .count{background:rgba(0,212,255,.22);}
+  .search-wrap{position:relative;flex:1 1 240px;min-width:220px;}
+  .search-wrap input{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;
+    padding:10px 14px 10px 36px;font-size:12.5px;color:var(--text);font-family:inherit;
+  }
+  .search-wrap input::placeholder{color:var(--text-faint);}
+  .search-wrap input:focus{outline:1px solid var(--cyan);outline-offset:0;border-color:var(--cyan);}
+  .search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text-faint);}
+
+  /* ---------- Station sections ---------- */
+  .station-section{margin-top:38px;}
+  .station-head{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .station-head .label{
+    font-size:11px;font-weight:700;color:var(--text-faint);letter-spacing:1.6px;text-transform:uppercase;white-space:nowrap;
+  }
+  .station-head .line{flex:1;height:1px;background:var(--border);}
+
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+  .client-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:11px;
+    padding:22px 22px 20px;display:flex;flex-direction:column;gap:14px;min-width:0;
+    transition:border-color .15s,transform .15s;
+  }
+  .client-card:hover{border-color:var(--cyan);transform:translateY(-1px);}
+  .card-badge{
+    width:34px;height:34px;border-radius:50%;
+    border:1.5px solid rgba(0,212,255,.45);color:var(--cyan);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:800;flex:0 0 auto;
+  }
+  .card-title{font-size:14.5px;font-weight:800;color:#fff;letter-spacing:.3px;text-transform:uppercase;}
+  .card-desc{font-size:12px;color:var(--text-muted);line-height:1.6;min-height:34px;}
+  .card-foot{display:flex;flex-direction:column;gap:9px;margin-top:2px;}
+  .status-line{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+  .status-line .dot{width:6px;height:6px;border-radius:50%;flex:0 0 auto;}
+  .status-line.live{color:var(--ok);}
+  .status-line.live .dot{background:var(--ok);box-shadow:0 0 0 2px var(--ok-soft);}
+  .status-line.pending{color:var(--pending);}
+  .status-line.pending .dot{background:var(--pending);box-shadow:0 0 0 2px var(--pending-soft);}
+  .card-link{
+    display:inline-flex;align-items:center;gap:6px;
+    color:var(--cyan);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+    text-decoration:none;
+  }
+  .card-link:hover{text-decoration:underline;}
+  .card-link svg{width:12px;height:12px;}
+  .card-link.disabled{color:var(--text-faint);cursor:default;}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-faint);font-size:12.5px;letter-spacing:.4px;text-transform:uppercase;}
+
+  ::selection{background:var(--cyan);color:#04121f;}
+
+  @media (max-width:640px){
+    .topbar{padding:16px 18px;}
+    .content{padding:32px 18px 50px;}
+    h1{font-size:32px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+    TeleArseg · Supervisión
+  </div>
+  <div class="topbar-right">
+    <span class="live-chip"><span class="dot"></span> En vivo</span>
+    <span id="clockLabel">—</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <a class="back-link" href="plan-emergencia-2026.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Volver al panel
+  </a>
+
+  <div class="breadcrumb">TeleArseg · Directorio de clientes</div>
+  <h1>PANEL GENERAL</h1>
+  <p class="lede">Directorio de paneles de monitoreo por estación. Selecciona una estación o busca un cliente para acceder directamente a su panel de incidentes.</p>
+
+  <div class="banner" id="pendingBanner" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+    <div class="banner-text"><b id="pendingCount">0</b> enlaces pendientes de publicación. Esos clientes muestran <b>"Enlace pendiente"</b> hasta que el panel correspondiente quede en línea.</div>
+  </div>
+
+  <div class="stat-strip">
+    <div class="stat-item"><span class="lbl">Estaciones</span><span class="val" id="statStations">0</span></div>
+    <div class="stat-item"><span class="lbl">Clientes totales</span><span class="val" id="statClients">0</span></div>
+    <div class="stat-item"><span class="lbl">Paneles en línea</span><span class="val ok" id="statLive">0</span></div>
+    <div class="stat-item"><span class="lbl">Pendientes</span><span class="val pending" id="statPending">0</span></div>
+  </div>
+
+  <div class="filters">
+    <div class="filters-row" id="stationPills"></div>
+    <div class="filters-row">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="search" id="searchBox" placeholder="Buscar cliente…">
+      </div>
+    </div>
+  </div>
+
+  <div id="stationsContainer"></div>
+  <div class="empty-state" id="emptyState" hidden>No se encontraron clientes con ese filtro.</div>
+
+</div>
+
+<script>
+  var DATA = [
+    { estacion: "Estación 1", clientes: [
+      { nombre: "EXPALSA", url: "https://telearsegsupervision.github.io/Panel-TeleArseg---Expalsa-/EXPALSA.html" },
+      { nombre: "GRUPO VASCO", url: "https://telearsegsupervision.github.io/GRUPO-VASCO---DASHBOARD/GRUPOVASCO.html" }
+    ]},
+    { estacion: "Estación 2", clientes: [
+      { nombre: "EXPALSA", url: "https://telearsegsupervision.github.io/Panel-TeleArseg---Expalsa-/EXPALSA.html" }
+    ]},
+    { estacion: "Estación 3", clientes: [
+      { nombre: "HCDAS LANEC COSTA", url: "https://telearsegsupervision.github.io/HACIENDAS-LANEC/HACIENDASLANEC.html" },
+      { nombre: "GARITAS LANEC COSTA", url: "https://telearsegsupervision.github.io/GARITAS-LANEC-COSTA/GARITASLANECCOSTA.html" },
+      { nombre: "LANEC TAURA", url: "https://telearsegsupervision.github.io/LANEC-TAURA---CAMARONERAS/LANECTAURA.html" },
+      { nombre: "PACIFICAM TAURA", url: "https://telearsegsupervision.github.io/Panel-TeleArseg---Pacificam-Taura/pacifican.html" }
+    ]},
+    { estacion: "Estación 4", clientes: [
+      { nombre: "LUKMAR", url: "https://telearsegsupervision.github.io/LUKMAR---DASHBOARD/LUKMAR.html" },
+      { nombre: "ING. FARAH", url: "https://telearsegsupervision.github.io/CLIENTE---ING.-XAVIER-FARAH/XAVIERFARAH.html" },
+      { nombre: "ING. DIEGO GALLARDO", url: "https://telearsegsupervision.github.io/ING.-DIEGO-GALLARDO---DASHBOARD/DIEGOGALLARDO.html" }
+    ]},
+    { estacion: "Estación 5", clientes: [
+      { nombre: "ING. ALEJANDRO CRUZ", url: "https://telearsegsupervision.github.io/ING.-ALEJANDRO-CRUZ---DASHBOARD/ALEJANDROCRUZ.html" },
+      { nombre: "DRA. ANA BRITO", url: "https://telearsegsupervision.github.io/DR.-ANA-BRITO---DASHBOARD/ANABRITO.html" },
+      { nombre: "ING. SEUNG YEO", url: "https://telearsegsupervision.github.io/ING.-SEUNG-YEO---DASHBOARD/SEUNGYEO.html" },
+      { nombre: "M.C.L", url: "https://telearsegsupervision.github.io/M.C.L---Dashboard/M.C.L.html" },
+      { nombre: "CORPORACION ARAY", url: "https://telearsegsupervision.github.io/Corporacion-Aray---Dashboard/CORPORACION%20ARAY.html" },
+      { nombre: "CULSARO", url: "https://telearsegsupervision.github.io/Culsaro---Dashboard/CULSARO.html" }
+    ]},
+    { estacion: "Estación 6", clientes: [
+      { nombre: "HOTEL WYNDHAM MANTA SAIL PLAZA", url: "https://telearsegsupervision.github.io/HOTEL-WYNDHAM---DASHBOARD/WYNDHAM.html" },
+      { nombre: "CEIBOS", url: "https://telearsegsupervision.github.io/CEIBOS---DASHBOARD/CEIBOS.html" },
+      { nombre: "IMPALA TERMINALS", url: "https://telearsegsupervision.github.io/IMPALA-TERMINALS---DASHBOARD/IMPALA.html" },
+      { nombre: "DIMASS", url: "https://telearsegsupervision.github.io/DIMASS---DASHBOARD/DIMAS.html" }
+    ]},
+    { estacion: "Estación 7", clientes: [
+      { nombre: "GRUPO SANTOS", url: "https://telearsegsupervision.github.io/GRUPO-SANTOS---DASHBOARD/GRUPO_SANTOS.html" },
+      { nombre: "TUMBES PA", url: "https://telearsegsupervision.github.io/TUMBES-PA---DASHBOARD/TUMBES_PA.html" },
+      { nombre: "CANAL DE GUAYAQUIL", url: "https://telearsegsupervision.github.io/CANAL-DE-GUAYAQUIL---DASHBOARD/CANAL_DE_GUAYAQUIL.html" },
+      { nombre: "PESCASOL", url: "https://telearsegsupervision.github.io/PESCASOL---DASHBOARD/PESCASOL.html" },
+      { nombre: "VITABAL S.A", url: "https://telearsegsupervision.github.io/Vitabal-S.A---Dashboard/VITABAL.html" }
+    ]},
+    { estacion: "Estación 8", clientes: [
+      { nombre: "GRUPO CACESA", url: "https://telearsegsupervision.github.io/GRUPO-CACESA---HONDURAS/GRUPO_CACESA.html" },
+      { nombre: "BIOMAR", url: "https://telearsegsupervision.github.io/BIOMAR---DASHBOARD/BIOMAR.html" },
+      { nombre: "LA ESMERALDA", url: "https://telearsegsupervision.github.io/Esmeralda---Dashboard/LA%20ESMERALDA.html" },
+      { nombre: "HCDA. PALO SANTO", url: "https://telearsegsupervision.github.io/Hacienda-Palo-Santo---Dashboard/HACIENDA%20PALO%20SANTO.html" }
+    ]},
+    { estacion: "Estación GPS", clientes: [
+      { nombre: "BIOMAR GPS", url: "https://telearsegsupervision.github.io/BIOMAR-GPS---DASHBOARD/BIOMAR_GPS.html" },
+      { nombre: "AQ1", url: null },
+      { nombre: "OMARSA", url: null }
+    ]}
+  ];
+
+  var activeStation = "Todas";
+  var searchTerm = "";
+
+  function totalClients(){
+    var n = 0;
+    DATA.forEach(function(s){ n += s.clientes.length; });
+    return n;
+  }
+  function totalLive(){
+    var n = 0;
+    DATA.forEach(function(s){ s.clientes.forEach(function(c){ if (c.url) n++; }); });
+    return n;
+  }
+  function totalPending(){
+    return totalClients() - totalLive();
+  }
+
+  function renderStats(){
+    document.getElementById("statStations").textContent = DATA.length;
+    document.getElementById("statClients").textContent = totalClients();
+    document.getElementById("statLive").textContent = totalLive();
+    document.getElementById("statPending").textContent = totalPending();
+    var pending = totalPending();
+    var banner = document.getElementById("pendingBanner");
+    if (pending > 0){
+      document.getElementById("pendingCount").textContent = pending;
+      banner.hidden = false;
+    } else {
+      banner.hidden = true;
+    }
+  }
+
+  function renderPills(){
+    var wrap = document.getElementById("stationPills");
+    wrap.innerHTML = "";
+    var all = ["Todas"].concat(DATA.map(function(s){ return s.estacion; }));
+    all.forEach(function(name){
+      var count = name === "Todas" ? totalClients() : DATA.filter(function(s){return s.estacion===name;})[0].clientes.length;
+      var btn = document.createElement("button");
+      btn.className = "station-pill" + (activeStation === name ? " active" : "");
+      btn.innerHTML = name + ' <span class="count">' + count + '</span>';
+      btn.addEventListener("click", function(){
+        activeStation = name;
+        renderAll();
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function svgOpen(){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17L17 7M7 7h10v10"/></svg>';
+  }
+
+  function initials(name){
+    var words = name.replace(/[.,]/g,"").split(/\s+/).filter(Boolean);
+    if (words.length === 1) return words[0].slice(0,2).toUpperCase();
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+
+  function renderStations(){
+    var container = document.getElementById("stationsContainer");
+    container.innerHTML = "";
+    var term = searchTerm.trim().toLowerCase();
+    var visibleStations = DATA.filter(function(s){
+      return activeStation === "Todas" || activeStation === s.estacion;
+    });
+
+    var anyVisible = false;
+
+    visibleStations.forEach(function(s){
+      var clientesFiltrados = s.clientes.filter(function(c){
+        return !term || c.nombre.toLowerCase().indexOf(term) !== -1;
+      });
+      if (clientesFiltrados.length === 0) return;
+      anyVisible = true;
+
+      var section = document.createElement("div");
+      section.className = "station-section";
+
+      var head = document.createElement("div");
+      head.className = "station-head";
+      head.innerHTML = '<span class="label">' + s.estacion + ' · ' + clientesFiltrados.length + (clientesFiltrados.length === 1 ? " cliente" : " clientes") + '</span><div class="line"></div>';
+      section.appendChild(head);
+
+      var grid = document.createElement("div");
+      grid.className = "cards-grid";
+
+      clientesFiltrados.forEach(function(c, idx){
+        var card = document.createElement("div");
+        card.className = "client-card";
+        var live = !!c.url;
+        card.innerHTML =
+          '<div class="card-badge">' + initials(c.nombre) + '</div>' +
+          '<div><div class="card-title">' + c.nombre + '</div>' +
+          '<div class="card-desc">Panel de monitoreo de incidentes · ' + s.estacion + '.</div></div>' +
+          '<div class="card-foot">' +
+            '<div class="status-line ' + (live ? "live" : "pending") + '"><span class="dot"></span>' + (live ? "Panel activo" : "Enlace pendiente") + '</div>' +
+            (live
+              ? '<a class="card-link" href="' + c.url + '" target="_blank" rel="noopener">Abrir panel ' + svgOpen() + '</a>'
+              : '<span class="card-link disabled">Abrir panel ' + svgOpen() + '</span>') +
+          '</div>';
+        grid.appendChild(card);
+      });
+
+      section.appendChild(grid);
+      container.appendChild(section);
+    });
+
+    document.getElementById("emptyState").hidden = anyVisible;
+  }
+
+  function renderAll(){
+    renderPills();
+    renderStations();
+  }
+
+  document.getElementById("searchBox").addEventListener("input", function(e){
+    searchTerm = e.target.value;
+    renderStations();
+  });
+
+  function updateClock(){
+    var now = new Date();
+    var pad = function(n){ return String(n).padStart(2,"0"); };
+    var fecha = pad(now.getDate()) + "/" + pad(now.getMonth()+1) + "/" + now.getFullYear();
+    var hora = pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+    document.getElementById("clockLabel").textContent = fecha + " · " + hora;
+  }
+
+  renderStats();
+  renderAll();
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
+
+</body>
+</html>
