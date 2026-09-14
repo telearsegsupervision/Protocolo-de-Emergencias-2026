@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeleArseg · Estación 8 · Dashboards</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg-void:#05070f;
+    --bg-panel:rgba(11,17,38,0.74);
+    --bg-panel-solid:#0b1126;
+    --line:rgba(126,158,224,0.22);
+    --line-strong:rgba(126,158,224,0.45);
+    --cyan:#33e7ff;
+    --cyan-dim:rgba(51,231,255,0.16);
+    --amber:#ffb020;
+    --amber-dim:rgba(255,176,32,0.16);
+    --green:#3ee08a;
+    --green-dim:rgba(62,224,138,0.14);
+    --text-hi:#eef3ff;
+    --text-mid:#a9b6d8;
+    --text-low:#66739a;
+    --radius:2px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg-void);
+    color:var(--text-hi);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  .bg-grid{
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:56px 56px;
+    opacity:0.12;
+    z-index:0;
+  }
+  .bg-vignette{
+    position:fixed; inset:0;
+    background:radial-gradient(ellipse at 50% 0%, rgba(51,231,255,0.06) 0%, transparent 55%),
+               radial-gradient(ellipse at 50% 100%, rgba(255,176,32,0.05) 0%, transparent 55%);
+    z-index:0;
+  }
+  .scanline{
+    position:fixed; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity:0.35;
+    animation:sweep 7s linear infinite;
+    z-index:1;
+    pointer-events:none;
+  }
+  @keyframes sweep{
+    0%{ top:0%; opacity:0; }
+    5%{ opacity:0.35; }
+    95%{ opacity:0; }
+    100%{ top:100%; opacity:0; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .scanline{animation:none; display:none;}
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  .statusbar{
+    position:relative; z-index:5;
+    display:flex; align-items:center; gap:22px;
+    padding:14px 24px;
+    background:rgba(5,7,15,0.55);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    color:var(--text-mid);
+    flex-wrap:wrap;
+  }
+  .statusbar .back{
+    display:flex; align-items:center; gap:6px;
+    color:var(--text-mid);
+    text-decoration:none;
+    text-transform:uppercase;
+    transition:color .2s;
+    margin-right:auto;
+  }
+  .statusbar .back:hover{ color:var(--cyan); }
+  .statusbar .back svg{ width:13px; height:13px; }
+  .statusbar .seg{display:flex; align-items:center; gap:8px;}
+  .statusbar .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 8px 1px var(--green);
+  }
+  .statusbar strong{color:var(--text-hi); font-weight:500;}
+
+  .hero{
+    position:relative; z-index:5;
+    max-width:1320px;
+    margin:0 auto;
+    padding:48px 20px 8px;
+  }
+  .eyebrow{
+    position:relative;
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--amber);
+    text-transform:uppercase;
+    padding-bottom:10px;
+    margin-bottom:14px;
+  }
+  .eyebrow::after{
+    content:'';
+    position:absolute; left:0; bottom:0;
+    width:64px; height:2px;
+    background:linear-gradient(90deg, var(--amber), transparent);
+  }
+  .hero h1{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:700;
+    font-size:clamp(28px, 4vw, 44px);
+    letter-spacing:0.01em;
+    color:var(--text-hi);
+    margin-bottom:14px;
+  }
+  .hero p{
+    max-width:760px;
+    font-size:14.5px;
+    line-height:1.65;
+    color:var(--text-mid);
+  }
+
+  .stations{
+    position:relative; z-index:5;
+    max-width:1320px;
+    margin:34px auto 20px;
+    padding:0 20px;
+  }
+  .stations-label{
+    display:flex; align-items:center; gap:12px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--text-low);
+    text-transform:uppercase;
+    margin-bottom:18px;
+  }
+  .stations-label::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:16px;
+  }
+  @media (max-width:1080px){ .stat-grid{ grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width:560px){ .stat-grid{ grid-template-columns:1fr; } }
+
+  .stat-card{
+    position:relative;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px 18px 18px;
+    display:flex; flex-direction:column; gap:12px;
+    text-decoration:none;
+    color:inherit;
+    backdrop-filter:blur(4px);
+    transition:transform .26s cubic-bezier(.2,.8,.2,1), border-color .26s, box-shadow .26s;
+    overflow:hidden;
+  }
+  .stat-card::before{
+    content:'';
+    position:absolute; top:0; left:0;
+    width:34px; height:34px;
+    border-top:1.5px solid var(--cyan);
+    border-left:1.5px solid var(--cyan);
+    opacity:0; transition:opacity .26s;
+  }
+  .stat-card:hover::before{ opacity:0.8; }
+  .stat-card:hover{
+    transform:translateY(-4px);
+    border-color:var(--cyan);
+    box-shadow:0 10px 30px -8px rgba(51,231,255,0.3);
+  }
+  .stat-card[data-status="pending"]{ cursor:default; opacity:0.55; }
+  .stat-card[data-status="pending"]:hover{ transform:none; border-color:var(--line); box-shadow:none; }
+  .stat-card[data-status="pending"]:hover::before{ opacity:0; }
+  .stat-card[data-status="pending"] .mdot{ background:var(--amber); box-shadow:0 0 6px 1px var(--amber); }
+  .stat-num{
+    display:flex; align-items:center; justify-content:center;
+    width:38px; height:38px;
+    border-radius:50%;
+    border:1.5px solid var(--line-strong);
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    color:var(--cyan);
+    transition:border-color .26s, color .26s;
+  }
+  .stat-card:hover .stat-num{ border-color:var(--cyan); }
+  .stat-title{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:600;
+    font-size:16px;
+    color:var(--text-hi);
+  }
+  .stat-desc{
+    font-size:12px;
+    color:var(--text-mid);
+    line-height:1.5;
+  }
+  .stat-meta{
+    display:flex; align-items:center; gap:7px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.06em;
+    color:var(--text-low);
+    text-transform:uppercase;
+  }
+  .stat-meta .mdot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 6px 1px var(--green);
+  }
+  .stat-arrow{
+    margin-top:auto;
+    display:flex; align-items:center; gap:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.08em;
+    color:var(--text-low);
+    text-transform:uppercase;
+  }
+  .stat-card:hover .stat-arrow{ color:var(--cyan); }
+  .stat-arrow svg{ width:11px; height:11px; }
+
+  footer{
+    position:relative; z-index:5;
+    text-align:center;
+    padding:26px 20px 34px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    color:var(--text-low);
+    border-top:1px solid var(--line);
+    margin-top:20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-vignette"></div>
+<div class="scanline"></div>
+
+<div class="statusbar">
+  <a class="back" href="dashboard-clientes.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    VOLVER A ESTACIONES
+  </a>
+  <div class="seg"><span class="dot"></span><strong>DASHBOARD ACTIVO</strong></div>
+  <div class="seg" id="clock">— — : — — : — —</div>
+</div>
+
+<div class="hero">
+  <div class="eyebrow">Generales · Estación 8</div>
+  <h1>ESTACIÓN 8 · DASHBOARDS</h1>
+  <p>Selecciona el cliente para abrir su dashboard de monitoreo en tiempo real.</p>
+</div>
+
+<div class="stations">
+  <div class="stations-label">4 clientes · Dashboards de la estación 8</div>
+  <div class="stat-grid" id="statGrid"></div>
+</div>
+
+<footer>TELEARSEG © SISTEMA DE MONITOREO Y SEGURIDAD — DASHBOARD ESTACIÓN 8</footer>
+
+<script>
+const clientes = [
+  { nombre:'GRUPO CACESA', href:'https://telearsegsupervision.github.io/GRUPO-CACESA---HONDURAS/GRUPO_CACESA.html' },
+  { nombre:'BIOMAR', href:'https://telearsegsupervision.github.io/BIOMAR---DASHBOARD/BIOMAR.html' },
+  { nombre:'LA ESMERALDA', href:null },
+  { nombre:'HCDA. PALO SANTO', href:null },
+];
+
+const grid = document.getElementById('statGrid');
+
+clientes.forEach((c, i) => {
+  const active = !!c.href;
+  const el = document.createElement(active ? 'a' : 'div');
+  el.className = 'stat-card';
+  el.setAttribute('data-status', active ? 'active' : 'pending');
+  if (active) { el.href = c.href; el.target = '_blank'; el.rel = 'noopener'; }
+  el.innerHTML = `
+    <div class="stat-num">${i + 1}</div>
+    <div class="stat-title">${c.nombre}</div>
+    <div class="stat-desc">Dashboard de monitoreo en vivo de ${c.nombre}.</div>
+    <div class="stat-meta"><span class="mdot"></span>${active ? 'DASHBOARD ACTIVO' : 'LINK PENDIENTE'}</div>
+    <div class="stat-arrow">${active ? 'Abrir dashboard<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>' : 'Próximamente'}</div>
+  `;
+  grid.appendChild(el);
+});
+
+function tick(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,'0');
+  document.getElementById('clock').textContent =
+    `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} · ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+tick();
+setInterval(tick, 1000);
+</script>
+
+</body>
+</html>
