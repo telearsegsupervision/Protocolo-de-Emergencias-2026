@@ -566,7 +566,7 @@
           <select id="fEst"></select>
         </div>
         <div class="field">
-          <label for="fProp">Camaronera / Propiedad</label>
+          <label for="fProp">Propiedad</label>
           <select id="fProp"></select>
         </div>
         <div class="field">
@@ -661,7 +661,7 @@
           <select id="rEst"></select>
         </div>
         <div class="field">
-          <label for="rProp">Camaronera / Propiedad</label>
+          <label for="rProp">Propiedad</label>
           <select id="rProp"></select>
         </div>
         <div class="field">
@@ -977,7 +977,7 @@
 
     // Variantes de columnas: algunas hojas no tienen "PISCINA" (Ceibos) o
     // agregan una columna "CATEGORIA" extra entre TIPO y DESCRIPCION (Impala).
-    var noPiscina = /CEIBOS|DURANCOCOA/.test(propText);
+    var noPiscina = /CEIBOS|DURANCOCOA|CAMPAMENTO VICTORIA/.test(propText);
     var extraCategoria = /IMPALA/.test(propText);
 
     var out = [];
@@ -1056,7 +1056,7 @@
     DATA = RAW.map(function(r){
       return {
         n: r.n, estacion: r.estacion, fecha: r.dia, hora: r.hora,
-        prop: r.camaronera, cliente: clienteDe(r.propName || r.camaronera), perim: r.perimetro, nt: r.nt, tipo: r.tipo,
+        prop: r.propName || r.camaronera, cliente: clienteDe(r.propName || r.camaronera), perim: r.perimetro, nt: r.nt, tipo: r.tipo,
         desc: r.descripcion, inv: r.involucrado, nivel: r.nivel,
         op: r.operador, accion: r.accion
       };
