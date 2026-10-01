@@ -143,6 +143,50 @@
     box-shadow:0 1px 4px rgba(0,0,0,.5);white-space:nowrap;
   }
   .mapeo-label::before{display:none;}
+  .mapeo-label-new{border-color:#fbbf24;color:#fbbf24;}
+
+  /* edición del mapeo técnico desde el propio panel */
+  .mapeo-edit-bar{margin-top:7px;padding-top:9px;border-top:1px solid var(--border);}
+  .mapeo-edit-btn{
+    background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:7px;
+    padding:6px 10px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;margin:0 6px 6px 0;
+  }
+  .mapeo-edit-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .mapeo-edit-btn.active{background:linear-gradient(120deg,var(--accent),var(--accent2));color:#04060a;border-color:transparent;}
+  .mapeo-edit-tools{margin-top:4px;}
+  .mapeo-draw-hint{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5;}
+
+  .mapeo-mini-form{
+    position:absolute;z-index:1100;width:230px;background:var(--panel);backdrop-filter:blur(14px);
+    border:1px solid var(--accent);border-radius:12px;box-shadow:0 16px 44px rgba(0,0,0,.55);padding:12px;
+  }
+  .mmf-title{font-size:12px;font-weight:800;margin-bottom:9px;}
+  .mmf-field{display:block;margin-bottom:9px;}
+  .mmf-field span{display:block;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:4px;}
+  .mmf-field input[type=text]{
+    width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:7px;
+    padding:7px 9px;font-family:'Sora',sans-serif;font-size:12px;outline:none;
+  }
+  .mmf-field select{
+    width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:7px;
+    padding:7px 9px;font-family:'Sora',sans-serif;font-size:11.5px;outline:none;
+  }
+  .mmf-field input[type=checkbox]{margin-right:5px;}
+  .mmf-actions{display:flex;gap:8px;margin-top:4px;}
+  .mmf-cancel,.mmf-save{flex:1;border-radius:8px;padding:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;border:1px solid var(--border);}
+  .mmf-cancel{background:var(--panel2);color:var(--muted);}
+  .mmf-save{background:linear-gradient(120deg,var(--accent),var(--accent2));color:#04060a;border-color:transparent;}
+
+  .mapeo-download-bar{
+    position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:960;
+    display:flex;align-items:center;gap:10px;background:var(--panel);backdrop-filter:blur(14px);
+    border:1px solid #fbbf24;border-radius:12px;padding:9px 14px;box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  .mapeo-download-bar span{font-size:11px;color:#fbbf24;font-weight:700;white-space:nowrap;}
+  .mapeo-download-bar button{
+    background:linear-gradient(120deg,#fbbf24,#f59e0b);color:#04060a;border:none;border-radius:8px;
+    padding:7px 12px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Sora',sans-serif;white-space:nowrap;
+  }
   .fc-maps{
     display:flex;align-items:center;justify-content:center;gap:6px;margin-top:9px;padding:8px;border-radius:9px;
     background:linear-gradient(120deg,var(--accent),var(--accent2));color:#04060a;font-weight:700;font-size:11.5px;text-decoration:none;
@@ -343,6 +387,16 @@
           <div class="fc-row"><span class="k">Propiedad</span><span class="v" id="fcProp" style="font-family:'Sora',sans-serif;font-weight:600;"></span></div>
           <div class="fc-row"><span class="k">Tipo</span><span class="v" id="fcType" style="font-family:'Sora',sans-serif;font-weight:600;"></span></div>
           <div class="fc-row" id="fcMapeoRow" style="display:none;"><span class="k">🛰️ Mapeo técnico</span><span class="v" id="fcMapeoCount" style="font-family:'Sora',sans-serif;font-weight:600;color:var(--accent);"></span></div>
+          <div class="fc-row" id="fcMapeoEditedRow" style="display:none;"><span class="k">✏️ Sin subir</span><span class="v" id="fcMapeoEditedCount" style="font-family:'Sora',sans-serif;font-weight:600;color:#fbbf24;"></span></div>
+          <div class="mapeo-edit-bar" id="mapeoEditBar" style="display:none;">
+            <button class="mapeo-edit-btn" id="mapeoEditToggle" type="button">✏️ Editar mapeo</button>
+            <div class="mapeo-edit-tools" id="mapeoEditTools" style="display:none;">
+              <button class="mapeo-edit-btn" id="mapeoToolPoint" type="button">📍 Agregar punto</button>
+              <button class="mapeo-edit-btn" id="mapeoToolRoute" type="button">➰ Dibujar ruta</button>
+              <button class="mapeo-edit-btn" id="mapeoToolFinishRoute" type="button" style="display:none;">✓ Terminar ruta</button>
+              <div class="mapeo-draw-hint" id="mapeoDrawHint"></div>
+            </div>
+          </div>
           <details class="fc-more" id="fcMore">
             <summary>Ver más información →</summary>
             <div id="fcContact"></div>
@@ -362,6 +416,34 @@
       <div class="search-wrap" id="searchWrap" style="display:none;position:absolute;top:16px;left:60px;width:300px;z-index:960;">
         <input id="searchInput" type="text" placeholder="Buscar punto o propiedad..." style="width:100%;padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:var(--panel-solid);color:var(--text);font-size:12.5px;outline:none;font-family:'Sora',sans-serif;">
         <div class="search-results" id="searchResults" style="position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--panel-solid);border:1px solid var(--border);border-radius:10px;overflow:hidden;max-height:320px;overflow-y:auto;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none;"></div>
+      </div>
+
+      <div class="mapeo-mini-form" id="mapeoMiniForm" style="display:none;">
+        <div class="mmf-title" id="mmfTitle">Nuevo punto</div>
+        <label class="mmf-field">
+          <span>Nombre / número</span>
+          <input type="text" id="mmfName" placeholder="Ej. P# 23">
+        </label>
+        <label class="mmf-field" id="mmfPinField">
+          <span><input type="checkbox" id="mmfShowPin" checked> Mostrar pin en el mapa</span>
+        </label>
+        <label class="mmf-field" id="mmfTypeField" style="display:none;">
+          <span>Tipo de línea</span>
+          <select id="mmfLineType">
+            <option value="contorno">Contorno / perímetro de la propiedad</option>
+            <option value="rango">Rango de alcance de cámara</option>
+            <option value="otro">Otro (acceso, ruta genérica)</option>
+          </select>
+        </label>
+        <div class="mmf-actions">
+          <button type="button" class="mmf-cancel" id="mmfCancel">Cancelar</button>
+          <button type="button" class="mmf-save" id="mmfSave">Guardar</button>
+        </div>
+      </div>
+
+      <div class="mapeo-download-bar" id="mapeoDownloadBar" style="display:none;">
+        <span id="mapeoDownloadCount">0 cambios sin subir</span>
+        <button type="button" id="mapeoDownloadBtn">⬇️ Descargar mapeo-2026.json actualizado</button>
       </div>
     </div>
 
@@ -1120,8 +1202,35 @@ document.getElementById('paneTabs').addEventListener('click', function(e){
 // KML; si no hay una coincidencia segura, no se muestra nada — mejor eso
 // que mezclar el mapeo de una propiedad con el de otra.
 // ============================================================
-var mapeoByName = null, mapeoFetchPromise = null;
+var mapeoByName = null, mapeoFetchPromise = null, mapeoRawData = null;
 var propertyMapeoLayer = L.layerGroup().addTo(map);
+
+// ---- edición del mapeo desde el panel: puntos y rutas creados a mano en
+// esta sesión del navegador, acumulados en memoria por propiedad. Como
+// coordenadas.html no tiene servidor, no se guardan solas — se exportan
+// como un mapeo-2026.json actualizado para subir a GitHub, igual que
+// cualquier otro cambio de esta página. ----
+var propertyEdits = {};
+var editMode = false, drawTool = null, routeDraftPts = [], routeDraftLayer = null, pendingPointLatLng = null;
+
+function getLocEdits(loc){
+  return (propertyEdits[loc.id] = propertyEdits[loc.id] || { points: [], lines: [] });
+}
+function countAllEdits(){
+  var n = 0;
+  Object.keys(propertyEdits).forEach(function(id){ n += propertyEdits[id].points.length + propertyEdits[id].lines.length; });
+  return n;
+}
+function updateDownloadBar(){
+  var n = countAllEdits();
+  var bar = document.getElementById('mapeoDownloadBar');
+  if (n > 0) {
+    bar.style.display = 'flex';
+    document.getElementById('mapeoDownloadCount').textContent = n + (n === 1 ? ' cambio sin subir' : ' cambios sin subir');
+  } else {
+    bar.style.display = 'none';
+  }
+}
 
 function normMapeo(s){
   return (s||'').toString().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
@@ -1165,6 +1274,7 @@ function ensureMapeoLoaded(callback){
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
     }).then(function(data){
+      mapeoRawData = data;
       mapeoByName = buildMapeoIndex(data);
     }).catch(function(err){
       console.warn('No se pudo cargar mapeo-2026.json:', err.message);
@@ -1177,44 +1287,76 @@ function ensureMapeoLoaded(callback){
 function clearPropertyMapeo(){
   propertyMapeoLayer.clearLayers();
   document.getElementById('fcMapeoRow').style.display = 'none';
+  document.getElementById('fcMapeoEditedRow').style.display = 'none';
+  document.getElementById('mapeoEditBar').style.display = 'none';
+  exitEditMode();
 }
 
 // Líneas cuyo nombre indica el contorno/límite de la propiedad (no el
 // alcance de una cámara puntual) — se dibujan más gruesas y sólidas para
 // que se lean como el perímetro, en vez de perderse entre las demás líneas.
-function esLineaDeContorno(nombre){
-  var n = (nombre||'').toUpperCase();
-  return /PERIMETRO|PERÍMETRO|CONTORNO|LIMITE|LÍMITE|LINDERO|CERCO|BORDE|SECTOR/.test(n);
+// Una línea creada a mano puede traer su propio "tipo" explícito (elegido
+// en el mini-formulario), que manda sobre esta detección por nombre.
+function esLineaDeContorno(ln){
+  if (ln.tipo) return ln.tipo === 'contorno';
+  return /PERIMETRO|PERÍMETRO|CONTORNO|LIMITE|LÍMITE|LINDERO|CERCO|BORDE|SECTOR/.test((ln.n||'').toUpperCase());
 }
 
-function renderPropertyMapeo(loc, branch){
+function renderPropertyMapeo(loc){
   propertyMapeoLayer.clearLayers();
   var c = colorFor(loc);
-  var total = branch.points.length + branch.lines.length + branch.polygons.length;
-  if (!total) return;
-  // el contorno va primero (debajo) para que los puntos de cámaras queden encima
-  branch.lines.forEach(function(ln){
-    var contorno = esLineaDeContorno(ln.n);
-    L.polyline(ln.pts, contorno
+  var branch = matchPropertyMapeo(loc);
+  var edits = propertyEdits[loc.id] || { points: [], lines: [] };
+  var baseLines = branch ? branch.lines : [];
+  var basePolygons = branch ? branch.polygons : [];
+  var basePoints = branch ? branch.points : [];
+  var total = basePoints.length + baseLines.length + basePolygons.length;
+  var editedTotal = edits.points.length + edits.lines.length;
+
+  // el contorno/rango va primero (debajo) para que los puntos queden encima
+  baseLines.concat(edits.lines).forEach(function(ln, idx){
+    var isNew = idx >= baseLines.length;
+    var contorno = esLineaDeContorno(ln);
+    var style = contorno
       ? { color: '#ffffff', weight: 2.4, opacity: .85, dashArray: '7,5' }
-      : { color: c, weight: 1.2, opacity: .5, dashArray: '2,5' }
-    ).bindPopup('<b>'+escapeHtml(ln.n || (contorno ? 'Contorno de la propiedad' : 'Rango de alcance'))+'</b>')
+      : { color: c, weight: 1.2, opacity: .5, dashArray: '2,5' };
+    if (isNew) { style.color = '#fbbf24'; style.weight = Math.max(style.weight, 2.4); style.opacity = .9; }
+    L.polyline(ln.pts, style)
+      .bindPopup('<b>'+escapeHtml(ln.n || (contorno ? 'Contorno de la propiedad' : 'Rango de alcance'))+'</b>' + (isNew ? '<br><span style="color:#fbbf24;">✏️ nuevo, sin subir</span>' : ''))
       .addTo(propertyMapeoLayer);
   });
-  branch.polygons.forEach(function(pg){
+  basePolygons.forEach(function(pg){
     L.polygon(pg.ring, { color: '#ffffff', weight: 2.4, opacity: .85, fillColor: c, fillOpacity: .10 })
       .bindPopup('<b>'+escapeHtml(pg.n || 'Área de la propiedad')+'</b>')
       .addTo(propertyMapeoLayer);
   });
-  branch.points.forEach(function(p){
+  basePoints.concat(edits.points).forEach(function(p, idx){
     if (!p.ll) return;
-    L.circleMarker(p.ll, { radius: 3.5, weight: 1.2, color: c, fillColor: c, fillOpacity: .9 })
-      .bindTooltip(p.n || '(sin nombre)', { permanent: true, direction: 'top', offset: [0,-3], className: 'mapeo-label' })
-      .bindPopup('<b>'+escapeHtml(p.n || '(sin nombre)')+'</b>')
+    var isNew = idx >= basePoints.length;
+    var showPin = p.pin !== false;
+    var color = isNew ? '#fbbf24' : c;
+    var marker = showPin
+      ? L.circleMarker(p.ll, { radius: 3.5, weight: 1.2, color: color, fillColor: color, fillOpacity: .9 })
+      : L.circleMarker(p.ll, { radius: 1, weight: 0, opacity: 0, fillOpacity: 0 }); // solo ancla la etiqueta, sin pin visible
+    marker.bindTooltip(p.n || '(sin nombre)', { permanent: true, direction: 'top', offset: [0,-3], className: 'mapeo-label' + (isNew ? ' mapeo-label-new' : '') })
+      .bindPopup('<b>'+escapeHtml(p.n || '(sin nombre)')+'</b>' + (isNew ? '<br><span style="color:#fbbf24;">✏️ nuevo, sin subir</span>' : ''))
       .addTo(propertyMapeoLayer);
   });
-  document.getElementById('fcMapeoRow').style.display = '';
-  document.getElementById('fcMapeoCount').textContent = total + (total === 1 ? ' punto' : ' puntos');
+
+  var mapeoRow = document.getElementById('fcMapeoRow');
+  if (total > 0) {
+    mapeoRow.style.display = '';
+    document.getElementById('fcMapeoCount').textContent = total + (total === 1 ? ' punto' : ' puntos');
+  } else {
+    mapeoRow.style.display = 'none';
+  }
+  var editedRow = document.getElementById('fcMapeoEditedRow');
+  if (editedTotal > 0) {
+    editedRow.style.display = '';
+    document.getElementById('fcMapeoEditedCount').textContent = editedTotal + (editedTotal === 1 ? ' cambio' : ' cambios');
+  } else {
+    editedRow.style.display = 'none';
+  }
 }
 
 function loadPropertyMapeo(loc){
@@ -1222,10 +1364,135 @@ function loadPropertyMapeo(loc){
   if (!loc || !loc.ll) return;
   ensureMapeoLoaded(function(){
     if (!activeLoc || activeLoc.id !== loc.id) return; // la selección cambió mientras cargaba
-    var branch = matchPropertyMapeo(loc);
-    if (branch) renderPropertyMapeo(loc, branch);
+    document.getElementById('mapeoEditBar').style.display = '';
+    renderPropertyMapeo(loc);
   });
 }
+
+// ---- herramientas de dibujo (puntos y rutas) ----
+function exitEditMode(){
+  editMode = false;
+  setDrawTool(null);
+  var toggleBtn = document.getElementById('mapeoEditToggle');
+  toggleBtn.classList.remove('active');
+  toggleBtn.textContent = '✏️ Editar mapeo';
+  document.getElementById('mapeoEditTools').style.display = 'none';
+}
+
+function cancelRouteDraft(){
+  routeDraftPts = [];
+  if (routeDraftLayer) { propertyMapeoLayer.removeLayer(routeDraftLayer); routeDraftLayer = null; }
+}
+
+function closeMiniForm(){
+  document.getElementById('mapeoMiniForm').style.display = 'none';
+  pendingPointLatLng = null;
+}
+
+function setDrawTool(tool){
+  if (drawTool === 'route' && tool !== 'route') cancelRouteDraft();
+  drawTool = tool;
+  closeMiniForm();
+  document.getElementById('mapeoToolPoint').classList.toggle('active', tool === 'point');
+  document.getElementById('mapeoToolRoute').classList.toggle('active', tool === 'route');
+  document.getElementById('mapeoToolFinishRoute').style.display = tool === 'route' ? '' : 'none';
+  var hint = document.getElementById('mapeoDrawHint');
+  hint.textContent = tool === 'point' ? 'Haga clic en el mapa para colocar el punto.' :
+                      tool === 'route' ? 'Haga clic para agregar vértices y luego presione "Terminar ruta".' : '';
+}
+
+function openMiniForm(kind, containerPoint){
+  var mmf = document.getElementById('mapeoMiniForm');
+  mmf.dataset.kind = kind;
+  document.getElementById('mmfTitle').textContent = kind === 'point' ? 'Nuevo punto' : 'Nueva línea / ruta';
+  document.getElementById('mmfPinField').style.display = kind === 'point' ? '' : 'none';
+  document.getElementById('mmfTypeField').style.display = kind === 'route' ? '' : 'none';
+  document.getElementById('mmfName').value = '';
+  document.getElementById('mmfShowPin').checked = true;
+  var mapEl = document.querySelector('.map-pane');
+  var left = Math.min(containerPoint.x + 14, mapEl.clientWidth - 246);
+  var top = Math.min(Math.max(containerPoint.y - 10, 10), mapEl.clientHeight - 230);
+  mmf.style.left = left + 'px';
+  mmf.style.top = top + 'px';
+  mmf.style.display = 'block';
+  document.getElementById('mmfName').focus();
+}
+
+map.on('click', function(e){
+  if (!editMode || !drawTool || !activeLoc) return;
+  if (drawTool === 'point') {
+    pendingPointLatLng = e.latlng;
+    openMiniForm('point', e.containerPoint);
+  } else if (drawTool === 'route') {
+    routeDraftPts.push([e.latlng.lat, e.latlng.lng]);
+    if (routeDraftLayer) propertyMapeoLayer.removeLayer(routeDraftLayer);
+    routeDraftLayer = L.polyline(routeDraftPts, { color: '#fbbf24', weight: 2.5, dashArray: '4,4' }).addTo(propertyMapeoLayer);
+  }
+});
+
+document.getElementById('mapeoEditToggle').addEventListener('click', function(){
+  editMode = !editMode;
+  this.classList.toggle('active', editMode);
+  this.textContent = editMode ? '✕ Salir de edición' : '✏️ Editar mapeo';
+  document.getElementById('mapeoEditTools').style.display = editMode ? '' : 'none';
+  if (!editMode) setDrawTool(null);
+});
+document.getElementById('mapeoToolPoint').addEventListener('click', function(){
+  setDrawTool(drawTool === 'point' ? null : 'point');
+});
+document.getElementById('mapeoToolRoute').addEventListener('click', function(){
+  setDrawTool(drawTool === 'route' ? null : 'route');
+});
+document.getElementById('mapeoToolFinishRoute').addEventListener('click', function(){
+  if (routeDraftPts.length < 2) { alert('Haga clic en al menos 2 puntos del mapa para formar la ruta.'); return; }
+  var last = routeDraftPts[routeDraftPts.length - 1];
+  openMiniForm('route', map.latLngToContainerPoint(L.latLng(last[0], last[1])));
+});
+document.getElementById('mmfCancel').addEventListener('click', closeMiniForm);
+document.getElementById('mmfSave').addEventListener('click', function(){
+  var name = document.getElementById('mmfName').value.trim();
+  if (!name) { document.getElementById('mmfName').focus(); return; }
+  var loc = activeLoc;
+  if (!loc) { closeMiniForm(); return; }
+  var edits = getLocEdits(loc);
+  var kind = document.getElementById('mapeoMiniForm').dataset.kind;
+  if (kind === 'point') {
+    edits.points.push({ n: name, ll: [pendingPointLatLng.lat, pendingPointLatLng.lng], pin: document.getElementById('mmfShowPin').checked });
+    setDrawTool('point'); // sigue en modo "agregar punto" para seguir marcando varios seguidos
+  } else {
+    edits.lines.push({ n: name, pts: routeDraftPts.slice(), tipo: document.getElementById('mmfLineType').value });
+    cancelRouteDraft();
+    setDrawTool(null);
+  }
+  closeMiniForm();
+  renderPropertyMapeo(loc);
+  updateDownloadBar();
+});
+
+function pathForLoc(loc){
+  var branch = matchPropertyMapeo(loc);
+  if (branch) return branch.path;
+  return ['MAPEO 2026', loc.est ? ('ESTACION ' + loc.est) : 'SIN ESTACION', loc.name];
+}
+
+document.getElementById('mapeoDownloadBtn').addEventListener('click', function(){
+  var base = mapeoRawData || { points: [], lines: [], polygons: [] };
+  var out = { points: base.points.slice(), lines: base.lines.slice(), polygons: (base.polygons || []).slice() };
+  Object.keys(propertyEdits).forEach(function(locId){
+    var loc = LOCS.find(function(l){ return l.id === locId; });
+    if (!loc) return;
+    var path = pathForLoc(loc);
+    var edits = propertyEdits[locId];
+    edits.points.forEach(function(p){ out.points.push({ n: p.n, p: path, ll: p.ll, pin: p.pin }); });
+    edits.lines.forEach(function(ln){ out.lines.push({ n: ln.n, p: path, pts: ln.pts, tipo: ln.tipo }); });
+  });
+  var blob = new Blob([JSON.stringify(out)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'mapeo-2026.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
 </script>
 </body>
 </html>
