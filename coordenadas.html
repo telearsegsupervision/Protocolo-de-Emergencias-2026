@@ -334,6 +334,7 @@
           <div class="fc-row"><span class="k">Longitud</span><span class="v" id="fcLon"></span></div>
           <div class="fc-row"><span class="k">Propiedad</span><span class="v" id="fcProp" style="font-family:'Sora',sans-serif;font-weight:600;"></span></div>
           <div class="fc-row"><span class="k">Tipo</span><span class="v" id="fcType" style="font-family:'Sora',sans-serif;font-weight:600;"></span></div>
+          <div class="fc-row" id="fcMapeoRow" style="display:none;"><span class="k">🛰️ Mapeo técnico</span><span class="v" id="fcMapeoCount" style="font-family:'Sora',sans-serif;font-weight:600;color:var(--accent);"></span></div>
           <details class="fc-more" id="fcMore">
             <summary>Ver más información →</summary>
             <div id="fcContact"></div>
@@ -497,7 +498,7 @@ var esriLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/service
 var mapTilerLayer = L.tileLayer('https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=iEPfGFj705SocPnbhvww', {
   attribution: '&copy; MapTiler &copy; OpenStreetMap contributors', tileSize: 512, zoomOffset: -1, maxZoom: 20, minZoom: 3
 });
-L.control.layers({ 'Esri (por defecto)': esriLayer, 'MapTiler (alternativa)': mapTilerLayer }, null, { position: 'topright', collapsed: true }).addTo(map);
+var layersControl = L.control.layers({ 'Esri (por defecto)': esriLayer, 'MapTiler (alternativa)': mapTilerLayer }, {}, { position: 'topright', collapsed: true }).addTo(map);
 var boundariesLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
   maxZoom: 20, maxNativeZoom: 19, minZoom: 3, opacity: .85, pane: 'shadowPane'
 }).addTo(map);
@@ -674,6 +675,11 @@ function selectLoc(loc){
     else fetchWeather(loc);
   }
 
+  // Mapeo técnico (cámaras/accesos/polígono) de la propiedad seleccionada,
+  // igual de ligado a la selección que el Clima: se descarta el de la
+  // propiedad anterior y se busca el de la nueva.
+  if (typeof loadPropertyMapeo !== 'undefined') loadPropertyMapeo(loc);
+
   if (loc.ll) {
     var mk = markerById[loc.id];
     if (clusterLayer.hasLayer(mk)) {
@@ -691,6 +697,7 @@ document.getElementById('fcClose').addEventListener('click', function(){
   activeLoc = null;
   renderSideList();
   if (typeof activeTab !== 'undefined' && activeTab === 'clima') renderClimaEmpty();
+  if (typeof clearPropertyMapeo !== 'undefined') clearPropertyMapeo();
 });
 map.on('move zoom', function(){ if (activeLoc) positionCard(activeLoc); });
 
@@ -1093,6 +1100,111 @@ document.getElementById('paneTabs').addEventListener('click', function(e){
     else fetchWeather(activeLoc);
   }
 });
+
+// ============================================================
+// ---- Mapeo técnico de la propiedad seleccionada (KML 2026) ----
+// Fuente: MAPEO ACTUALIZADO 2026.kml → mapeo-2026.json (cámaras, accesos,
+// rangos de alcance y polígono de cada propiedad, tal como está en Google
+// Earth). La coordenada general de cada propiedad NO cambia con esto —
+// es contenido adicional, ligado solo a la propiedad seleccionada (igual
+// que el Clima), nunca de varias a la vez. Solo se asocia a una propiedad
+// cuando su nombre coincide EXACTO y sin ambigüedad con una carpeta del
+// KML; si no hay una coincidencia segura, no se muestra nada — mejor eso
+// que mezclar el mapeo de una propiedad con el de otra.
+// ============================================================
+var mapeoByName = null, mapeoFetchPromise = null;
+var propertyMapeoLayer = L.layerGroup().addTo(map);
+
+function normMapeo(s){
+  return (s||'').toString().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+}
+var MAPEO_GENERIC_N = { 'SIN SERVICIO DE MONITOREO':1, 'NODOS COSTANET':1, 'MAPEO 2026':1 };
+
+function buildMapeoIndex(data){
+  var byName = {};
+  function reg(path, idx, kind, item){
+    var n = normMapeo(path[idx]);
+    if (!n || /^ESTACION/.test(n) || MAPEO_GENERIC_N[n]) return;
+    var pathKey = path.slice(0, idx+1).join('|');
+    byName[n] = byName[n] || {};
+    if (!byName[n][pathKey]) byName[n][pathKey] = { path: path.slice(0, idx+1), points: [], lines: [], polygons: [] };
+    byName[n][pathKey][kind].push(item);
+  }
+  data.points.forEach(function(p){ for (var i=2;i<p.p.length;i++) reg(p.p, i, 'points', p); });
+  data.lines.forEach(function(ln){ for (var i=2;i<ln.p.length;i++) reg(ln.p, i, 'lines', ln); });
+  data.polygons.forEach(function(pg){ for (var i=2;i<pg.p.length;i++) reg(pg.p, i, 'polygons', pg); });
+  return byName;
+}
+
+function matchPropertyMapeo(loc){
+  if (!mapeoByName) return null;
+  var terms = [normMapeo(loc.name), normMapeo(loc.group)];
+  for (var i=0;i<terms.length;i++){
+    var term = terms[i];
+    if (!term) continue;
+    var branches = mapeoByName[term];
+    if (!branches) continue;
+    var keys = Object.keys(branches);
+    if (keys.length === 1) return branches[keys[0]]; // única carpeta con ese nombre: coincidencia segura
+  }
+  return null;
+}
+
+function ensureMapeoLoaded(callback){
+  if (mapeoByName) { callback(); return; }
+  if (!mapeoFetchPromise) {
+    mapeoFetchPromise = fetch('mapeo-2026.json').then(function(res){
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function(data){
+      mapeoByName = buildMapeoIndex(data);
+    }).catch(function(err){
+      console.warn('No se pudo cargar mapeo-2026.json:', err.message);
+      mapeoByName = {}; // sin reintentos: simplemente no habrá mapeo técnico disponible
+    });
+  }
+  mapeoFetchPromise.then(callback);
+}
+
+function clearPropertyMapeo(){
+  propertyMapeoLayer.clearLayers();
+  document.getElementById('fcMapeoRow').style.display = 'none';
+}
+
+function renderPropertyMapeo(loc, branch){
+  propertyMapeoLayer.clearLayers();
+  var c = colorFor(loc);
+  var total = branch.points.length + branch.lines.length + branch.polygons.length;
+  if (!total) return;
+  branch.points.forEach(function(p){
+    if (!p.ll) return;
+    L.circleMarker(p.ll, { radius: 4, weight: 1.4, color: c, fillColor: c, fillOpacity: .85 })
+      .bindPopup('<b>'+escapeHtml(p.n || '(sin nombre)')+'</b>')
+      .addTo(propertyMapeoLayer);
+  });
+  branch.lines.forEach(function(ln){
+    L.polyline(ln.pts, { color: c, weight: 1.2, opacity: .55, dashArray: '2,5' })
+      .bindPopup('<b>'+escapeHtml(ln.n || 'Rango de alcance')+'</b>')
+      .addTo(propertyMapeoLayer);
+  });
+  branch.polygons.forEach(function(pg){
+    L.polygon(pg.ring, { color: c, weight: 1.3, opacity: .6, fillColor: c, fillOpacity: .12 })
+      .bindPopup('<b>'+escapeHtml(pg.n || 'Área de la propiedad')+'</b>')
+      .addTo(propertyMapeoLayer);
+  });
+  document.getElementById('fcMapeoRow').style.display = '';
+  document.getElementById('fcMapeoCount').textContent = total + (total === 1 ? ' punto' : ' puntos');
+}
+
+function loadPropertyMapeo(loc){
+  clearPropertyMapeo();
+  if (!loc || !loc.ll) return;
+  ensureMapeoLoaded(function(){
+    if (!activeLoc || activeLoc.id !== loc.id) return; // la selección cambió mientras cargaba
+    var branch = matchPropertyMapeo(loc);
+    if (branch) renderPropertyMapeo(loc, branch);
+  });
+}
 </script>
 </body>
 </html>
