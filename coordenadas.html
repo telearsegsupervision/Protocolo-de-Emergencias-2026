@@ -135,6 +135,14 @@
   .fc-more .ref{font-size:11px;line-height:1.5;color:#c9cee0;background:var(--panel2);border-radius:8px;padding:8px;margin-top:5px;}
   .fc-sat-wrap{margin-top:7px;border-radius:9px;overflow:hidden;border:1px solid var(--border);background:var(--panel2);}
   .fc-sat-frame{width:100%;height:160px;border:0;display:block;}
+
+  /* etiquetas permanentes del mapeo técnico (número/código de cada piscina, estilo Google Earth) */
+  .mapeo-label{
+    background:rgba(5,11,22,.82);border:1px solid rgba(255,255,255,.25);color:#fff;
+    font-family:'Sora',sans-serif;font-size:9px;font-weight:700;padding:1px 5px;border-radius:5px;
+    box-shadow:0 1px 4px rgba(0,0,0,.5);white-space:nowrap;
+  }
+  .mapeo-label::before{display:none;}
   .fc-maps{
     display:flex;align-items:center;justify-content:center;gap:6px;margin-top:9px;padding:8px;border-radius:9px;
     background:linear-gradient(120deg,var(--accent),var(--accent2));color:#04060a;font-weight:700;font-size:11.5px;text-decoration:none;
@@ -1171,25 +1179,38 @@ function clearPropertyMapeo(){
   document.getElementById('fcMapeoRow').style.display = 'none';
 }
 
+// Líneas cuyo nombre indica el contorno/límite de la propiedad (no el
+// alcance de una cámara puntual) — se dibujan más gruesas y sólidas para
+// que se lean como el perímetro, en vez de perderse entre las demás líneas.
+function esLineaDeContorno(nombre){
+  var n = (nombre||'').toUpperCase();
+  return /PERIMETRO|PERÍMETRO|CONTORNO|LIMITE|LÍMITE|LINDERO|CERCO|BORDE|SECTOR/.test(n);
+}
+
 function renderPropertyMapeo(loc, branch){
   propertyMapeoLayer.clearLayers();
   var c = colorFor(loc);
   var total = branch.points.length + branch.lines.length + branch.polygons.length;
   if (!total) return;
-  branch.points.forEach(function(p){
-    if (!p.ll) return;
-    L.circleMarker(p.ll, { radius: 4, weight: 1.4, color: c, fillColor: c, fillOpacity: .85 })
-      .bindPopup('<b>'+escapeHtml(p.n || '(sin nombre)')+'</b>')
-      .addTo(propertyMapeoLayer);
-  });
+  // el contorno va primero (debajo) para que los puntos de cámaras queden encima
   branch.lines.forEach(function(ln){
-    L.polyline(ln.pts, { color: c, weight: 1.2, opacity: .55, dashArray: '2,5' })
-      .bindPopup('<b>'+escapeHtml(ln.n || 'Rango de alcance')+'</b>')
+    var contorno = esLineaDeContorno(ln.n);
+    L.polyline(ln.pts, contorno
+      ? { color: '#ffffff', weight: 2.4, opacity: .85, dashArray: '7,5' }
+      : { color: c, weight: 1.2, opacity: .5, dashArray: '2,5' }
+    ).bindPopup('<b>'+escapeHtml(ln.n || (contorno ? 'Contorno de la propiedad' : 'Rango de alcance'))+'</b>')
       .addTo(propertyMapeoLayer);
   });
   branch.polygons.forEach(function(pg){
-    L.polygon(pg.ring, { color: c, weight: 1.3, opacity: .6, fillColor: c, fillOpacity: .12 })
+    L.polygon(pg.ring, { color: '#ffffff', weight: 2.4, opacity: .85, fillColor: c, fillOpacity: .10 })
       .bindPopup('<b>'+escapeHtml(pg.n || 'Área de la propiedad')+'</b>')
+      .addTo(propertyMapeoLayer);
+  });
+  branch.points.forEach(function(p){
+    if (!p.ll) return;
+    L.circleMarker(p.ll, { radius: 3.5, weight: 1.2, color: c, fillColor: c, fillOpacity: .9 })
+      .bindTooltip(p.n || '(sin nombre)', { permanent: true, direction: 'top', offset: [0,-3], className: 'mapeo-label' })
+      .bindPopup('<b>'+escapeHtml(p.n || '(sin nombre)')+'</b>')
       .addTo(propertyMapeoLayer);
   });
   document.getElementById('fcMapeoRow').style.display = '';
