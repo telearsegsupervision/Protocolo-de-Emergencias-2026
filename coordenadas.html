@@ -133,6 +133,8 @@
   .fc-more .contact-row:last-of-type{border-bottom:none;}
   .fc-more .contact-row a{color:var(--accent);text-decoration:none;font-weight:600;}
   .fc-more .ref{font-size:11px;line-height:1.5;color:#c9cee0;background:var(--panel2);border-radius:8px;padding:8px;margin-top:5px;}
+  .fc-sat-wrap{margin-top:7px;border-radius:9px;overflow:hidden;border:1px solid var(--border);background:var(--panel2);}
+  .fc-sat-frame{width:100%;height:160px;border:0;display:block;}
   .fc-maps{
     display:flex;align-items:center;justify-content:center;gap:6px;margin-top:9px;padding:8px;border-radius:9px;
     background:linear-gradient(120deg,var(--accent),var(--accent2));color:#04060a;font-weight:700;font-size:11.5px;text-decoration:none;
@@ -254,6 +256,10 @@
             <summary>Ver más información →</summary>
             <div id="fcContact"></div>
             <div class="ref" id="fcRef" style="display:none;"></div>
+          </details>
+          <details class="fc-more" id="fcSatDetails">
+            <summary>Ver vista satelital clara (Google) →</summary>
+            <div class="fc-sat-wrap"><iframe id="fcSatFrame" class="fc-sat-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
           </details>
           <a class="fc-maps" id="fcMapsLink" target="_blank" rel="noopener">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.2 6a1 1 0 0 0-1.2-.9l-5 1.4-6-2-5.1 1.5a1 1 0 0 0-.9 1V19a1 1 0 0 0 1.2.9l4.8-1.4 6 2 5.1-1.5a1 1 0 0 0 .9-1Z"/><path d="M9 4v13"/><path d="M15 6.5V19"/></svg>
@@ -558,6 +564,8 @@ function selectLoc(loc){
   if (loc.ref) { refEl.style.display = ''; refEl.textContent = loc.ref; } else { refEl.style.display = 'none'; }
   document.getElementById('fcMore').open = false;
   document.getElementById('fcMapsLink').href = loc.link || ('https://www.google.com/maps?q=' + (loc.ll ? loc.ll.join(',') : ''));
+  document.getElementById('fcSatDetails').open = false;
+  document.getElementById('fcSatFrame').src = '';
 
   if (loc.ll) {
     var mk = markerById[loc.id];
@@ -577,6 +585,18 @@ document.getElementById('fcClose').addEventListener('click', function(){
   renderSideList();
 });
 map.on('move zoom', function(){ if (activeLoc) positionCard(activeLoc); });
+
+// La vista satelital de Google (más clara que Esri/MapTiler en zonas con
+// nubes frecuentes) solo se carga cuando el usuario abre esta sección —
+// evita pedirle la imagen a Google en cada clic de punto si no se necesita.
+document.getElementById('fcSatDetails').addEventListener('toggle', function(e){
+  var frame = document.getElementById('fcSatFrame');
+  if (e.target.open && activeLoc && activeLoc.ll) {
+    frame.src = 'https://maps.google.com/maps?q=' + activeLoc.ll.join(',') + '&z=17&t=k&output=embed';
+  } else {
+    frame.src = '';
+  }
+});
 
 // ---- filtros (propiedad + tipo de punto): select y chips sincronizados ----
 var typeSelect = document.getElementById('typeSelect');
