@@ -193,6 +193,88 @@
   }
   .qf-chip.active{color:#04060a;border-color:transparent;background:var(--chipcolor,var(--accent));}
 
+  /* ===== tabs del panel lateral (Coordenadas / Clima) ===== */
+  .pane-tabs{display:flex;gap:6px;padding:10px 18px 0;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .pane-tab{
+    flex:1;padding:9px 10px;border-radius:9px 9px 0 0;border:1px solid transparent;background:transparent;
+    color:var(--muted);font-family:'Sora',sans-serif;font-size:11px;font-weight:700;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:6px;transition:color .12s ease,background .12s ease;
+  }
+  .pane-tab:hover{color:var(--text);}
+  .pane-tab.active{color:var(--accent);background:var(--panel2);border-color:var(--border);border-bottom-color:var(--panel2);margin-bottom:-1px;}
+  .pane-view{display:flex;flex-direction:column;flex:1;min-height:0;}
+
+  /* ===== Clima Meteorológico ===== */
+  .clima-scroll{flex:1;overflow-y:auto;padding:16px 18px 20px;}
+  .clima-empty{padding:60px 16px;text-align:center;color:var(--muted);font-size:12.5px;line-height:1.6;}
+  .clima-empty svg{color:var(--muted);opacity:.5;margin-bottom:12px;}
+  .clima-loading{padding:60px 16px;text-align:center;color:var(--muted);font-size:12px;}
+  .clima-spin{width:28px;height:28px;border-radius:50%;border:2.5px solid var(--border);border-top-color:var(--accent);animation:climaspin .8s linear infinite;margin:0 auto 12px;}
+  @keyframes climaspin{to{transform:rotate(360deg);}}
+  .clima-error{padding:16px;border-radius:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);color:#fca5a5;font-size:11.5px;line-height:1.5;}
+  .clima-error .ce-retry{margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.16);border:1px solid rgba(239,68,68,.4);color:#fca5a5;border-radius:8px;padding:7px 12px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;}
+
+  .clima-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px;}
+  .clima-head h3{margin:0;font-size:14px;font-weight:800;line-height:1.3;}
+  .clima-head .ch-coord{font-family:monospace;font-size:10.5px;color:var(--muted);margin-top:3px;}
+  .clima-refresh{
+    display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--border);color:var(--text);
+    border-radius:8px;padding:7px 11px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;white-space:nowrap;flex-shrink:0;
+  }
+  .clima-refresh:hover{border-color:var(--accent);color:var(--accent);}
+  .clima-refresh svg{flex-shrink:0;}
+  .clima-refresh.loading svg{animation:climaspin 1s linear infinite;}
+  .clima-updated{font-size:9.5px;color:var(--muted);margin:6px 0 14px;}
+
+  .clima-badge{
+    display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:9px;font-size:11px;font-weight:800;
+    margin-bottom:14px;letter-spacing:.02em;
+  }
+  .clima-badge.v{background:rgba(34,197,94,.14);color:#4ade80;border:1px solid rgba(34,197,94,.35);}
+  .clima-badge.a{background:rgba(234,179,8,.14);color:#fbbf24;border:1px solid rgba(234,179,8,.35);}
+  .clima-badge.r{background:rgba(239,68,68,.14);color:#f87171;border:1px solid rgba(239,68,68,.35);}
+  .clima-badge .dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor;flex-shrink:0;}
+
+  .clima-hero{
+    display:flex;align-items:center;gap:16px;background:var(--panel2);border:1px solid var(--border);border-radius:14px;
+    padding:16px;margin-bottom:12px;
+  }
+  .clima-hero .ch-ico{font-size:40px;line-height:1;flex-shrink:0;}
+  .clima-hero .ch-temp{font-size:34px;font-weight:800;line-height:1;}
+  .clima-hero .ch-feel{font-size:10.5px;color:var(--muted);margin-top:4px;}
+  .clima-hero .ch-desc{font-size:12px;font-weight:700;margin-top:7px;}
+
+  .clima-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;}
+  .clima-card{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+  .clima-card .cc-k{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:700;display:flex;align-items:center;gap:5px;margin-bottom:4px;}
+  .clima-card .cc-v{font-size:16px;font-weight:800;}
+  .clima-card .cc-v small{font-size:10px;color:var(--muted);font-weight:600;}
+
+  .clima-section{margin:16px 0;}
+  .clima-section h4{margin:0 0 9px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
+
+  .clima-hourly{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
+  .hourly-item{flex:0 0 58px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:9px 6px;text-align:center;}
+  .hourly-item .hi-h{font-size:9.5px;color:var(--muted);font-weight:700;margin-bottom:5px;}
+  .hourly-item .hi-ico{font-size:18px;line-height:1;margin-bottom:5px;}
+  .hourly-item .hi-t{font-size:11.5px;font-weight:800;}
+  .hourly-item .hi-p{font-size:8.5px;color:#7fc8ff;margin-top:3px;}
+
+  .clima-daily{display:flex;flex-direction:column;gap:6px;}
+  .daily-item{display:grid;grid-template-columns:62px 22px 1fr auto;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:8px 11px;font-size:11px;}
+  .daily-item .di-day{font-weight:700;text-transform:capitalize;white-space:nowrap;}
+  .daily-item .di-ico{font-size:16px;text-align:center;}
+  .daily-item .di-rain{color:#7fc8ff;font-size:10px;white-space:nowrap;}
+  .daily-item .di-temps{font-family:monospace;white-space:nowrap;font-weight:700;text-align:right;}
+  .daily-item .di-temps .lo{color:var(--muted);font-weight:600;}
+
+  .clima-alert{display:flex;align-items:center;gap:9px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:11px 13px;font-size:11.5px;color:#86efac;font-weight:600;}
+  .clima-alert svg{flex-shrink:0;color:#4ade80;}
+
+  .clima-chart-wrap{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;}
+  .clima-chart-wrap svg{display:block;width:100%;height:auto;}
+  .clima-chart-wrap .cw-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:8px;}
+
   @media (max-width:1100px){
     .tagline{display:none;}
     .side-pane{display:none;}
@@ -279,6 +361,12 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         <h2>Puntos Georeferenciados</h2>
       </div>
+      <div class="pane-tabs" id="paneTabs">
+        <button class="pane-tab active" data-tab="coord">📍 Coordenadas</button>
+        <button class="pane-tab" data-tab="clima">🌦️ Clima Meteorológico</button>
+      </div>
+
+      <div class="pane-view active" id="coordView">
       <div class="side-filters">
         <div class="sf-field">
           <label>Cliente / Grupo</label>
@@ -319,6 +407,16 @@
             <button class="qf-chip active" data-t="all">Todas</button>
             <button class="qf-chip" data-t="tele">Propiedades</button>
             <button class="qf-chip" data-t="costa">Nodos Costanet</button>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <div class="pane-view" id="climaView" style="display:none;">
+        <div class="clima-scroll" id="climaScroll">
+          <div class="clima-empty" id="climaEmptyState">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div>Selecciona un punto en el mapa o en la lista<br>para ver su información meteorológica.</div>
           </div>
         </div>
       </div>
@@ -567,6 +665,15 @@ function selectLoc(loc){
   document.getElementById('fcSatDetails').open = false;
   document.getElementById('fcSatFrame').src = '';
 
+  // Clima Meteorológico sigue siempre al punto activo: al cambiar de
+  // propiedad se descarta cualquier dato anterior (no se reutiliza el
+  // clima de otra propiedad) y, si la pestaña está abierta, se consulta
+  // de inmediato el clima del nuevo punto.
+  if (typeof activeTab !== 'undefined' && activeTab === 'clima') {
+    if (!loc.ll) renderClimaNoCoords(loc);
+    else fetchWeather(loc);
+  }
+
   if (loc.ll) {
     var mk = markerById[loc.id];
     if (clusterLayer.hasLayer(mk)) {
@@ -583,6 +690,7 @@ document.getElementById('fcClose').addEventListener('click', function(){
   if (activeLoc && markerById[activeLoc.id]) markerById[activeLoc.id].setIcon(geoIcon(activeLoc, false));
   activeLoc = null;
   renderSideList();
+  if (typeof activeTab !== 'undefined' && activeTab === 'clima') renderClimaEmpty();
 });
 map.on('move zoom', function(){ if (activeLoc) positionCard(activeLoc); });
 
@@ -717,6 +825,274 @@ document.addEventListener('click', function(e){
 });
 
 renderSideList();
+
+// ============================================================
+// ---- 🌦️ Clima Meteorológico (Open-Meteo, sin API key) ----
+// Reutiliza las coordenadas ya existentes en LOCS (activeLoc.ll);
+// no se crea una segunda base de datos de coordenadas ni un segundo mapa.
+// ============================================================
+var CLIMA_CACHE = {};              // { locId: { data, ts } }
+var CLIMA_TTL_MS = 10 * 60 * 1000; // 10 minutos de caché por punto
+var activeTab = 'coord';
+
+var WMO = {
+  0:  { ico:'☀️', label:'Cielo despejado' },
+  1:  { ico:'🌤️', label:'Mayormente despejado' },
+  2:  { ico:'⛅', label:'Parcialmente nublado' },
+  3:  { ico:'☁️', label:'Nublado' },
+  45: { ico:'🌫️', label:'Niebla' },
+  48: { ico:'🌫️', label:'Niebla con escarcha' },
+  51: { ico:'🌦️', label:'Llovizna débil' },
+  53: { ico:'🌦️', label:'Llovizna moderada' },
+  55: { ico:'🌦️', label:'Llovizna intensa' },
+  56: { ico:'🌧️', label:'Llovizna helada débil' },
+  57: { ico:'🌧️', label:'Llovizna helada intensa' },
+  61: { ico:'🌧️', label:'Lluvia débil' },
+  63: { ico:'🌧️', label:'Lluvia moderada' },
+  65: { ico:'🌧️', label:'Lluvia intensa' },
+  66: { ico:'🌧️', label:'Lluvia helada débil' },
+  67: { ico:'🌧️', label:'Lluvia helada intensa' },
+  71: { ico:'🌨️', label:'Nevada débil' },
+  73: { ico:'🌨️', label:'Nevada moderada' },
+  75: { ico:'🌨️', label:'Nevada intensa' },
+  77: { ico:'🌨️', label:'Granos de nieve' },
+  80: { ico:'🌧️', label:'Chubascos débiles' },
+  81: { ico:'🌧️', label:'Chubascos moderados' },
+  82: { ico:'⛈️', label:'Chubascos fuertes' },
+  85: { ico:'🌨️', label:'Chubascos de nieve débiles' },
+  86: { ico:'🌨️', label:'Chubascos de nieve fuertes' },
+  95: { ico:'⛈️', label:'Tormenta eléctrica' },
+  96: { ico:'⛈️', label:'Tormenta con granizo débil' },
+  99: { ico:'⛈️', label:'Tormenta con granizo fuerte' }
+};
+function wmoInfo(code){ return WMO[code] || { ico:'❓', label:'Sin dato' }; }
+
+// "ESTADO METEOROLÓGICO": semáforo calculado únicamente con umbrales
+// objetivos sobre los valores reales que devuelve la API. Si un campo no
+// llegó, ese umbral simplemente se omite — nunca se inventa ni se asume.
+function estadoMeteorologico(cur){
+  var code = cur.weather_code, gust = cur.wind_gusts_10m, wind = cur.wind_speed_10m,
+      precip = cur.precipitation, vis = cur.visibility, uv = cur.uv_index;
+
+  var rojo = (typeof code === 'number' && [95,96,99].indexOf(code) !== -1) ||
+             (typeof gust === 'number' && gust >= 60) ||
+             (typeof precip === 'number' && precip >= 15) ||
+             (typeof vis === 'number' && vis < 1000);
+  if (rojo) return { nivel:'r', texto:'ALERTA — condiciones adversas' };
+
+  var amarillo = (typeof code === 'number' && [45,48,51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86].indexOf(code) !== -1) ||
+                 (typeof gust === 'number' && gust >= 40) ||
+                 (typeof wind === 'number' && wind >= 40) ||
+                 (typeof uv === 'number' && uv >= 8) ||
+                 (typeof vis === 'number' && vis < 3000);
+  if (amarillo) return { nivel:'a', texto:'PRECAUCIÓN — vigilar condiciones' };
+
+  return { nivel:'v', texto:'NORMAL — sin novedades' };
+}
+
+function fmtHour(iso){ var d = new Date(iso); return (d.getHours()+'').padStart(2,'0') + ':00'; }
+var DOW_CORTO = ['dom','lun','mar','mié','jue','vie','sáb'];
+function fmtDay(iso, idx){
+  if (idx === 0) return 'Hoy';
+  if (idx === 1) return 'Mañana';
+  var d = new Date(iso + 'T00:00:00');
+  return DOW_CORTO[d.getDay()];
+}
+
+function climaLineChart(values, color){
+  var w = 280, h = 54, pad = 4;
+  var nums = values.filter(function(v){ return typeof v === 'number'; });
+  if (nums.length < 2) return '';
+  var min = Math.min.apply(null, nums), max = Math.max.apply(null, nums);
+  if (min === max) { min -= 1; max += 1; }
+  var stepX = (w - pad*2) / (values.length - 1);
+  var pts = values.map(function(v, i){
+    var x = pad + i*stepX;
+    var y = h - pad - ((v - min) / (max - min)) * (h - pad*2);
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  });
+  return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><polyline points="'+pts.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+}
+function climaBarChart(values, color){
+  var w = 280, h = 54, pad = 4;
+  var nums = values.map(function(v){ return typeof v === 'number' ? v : 0; });
+  var max = Math.max.apply(null, nums.concat([1]));
+  var n = nums.length, bw = (w - pad*2) / n;
+  var bars = nums.map(function(v, i){
+    var bh = max > 0 ? (v / max) * (h - pad*2) : 0;
+    var x = pad + i*bw + bw*0.15;
+    var y = h - pad - bh;
+    return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+(bw*0.7).toFixed(1)+'" height="'+Math.max(bh,0.6).toFixed(1)+'" rx="1.5" fill="'+color+'"/>';
+  }).join('');
+  return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">' + bars + '</svg>';
+}
+
+function climaScrollEl(){ return document.getElementById('climaScroll'); }
+
+function renderClimaEmpty(){
+  climaScrollEl().innerHTML =
+    '<div class="clima-empty">' +
+      '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>' +
+      '<div>Selecciona un punto en el mapa o en la lista<br>para ver su información meteorológica.</div>' +
+    '</div>';
+}
+function renderClimaNoCoords(loc){
+  climaScrollEl().innerHTML =
+    '<div class="clima-empty">' +
+      '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>' +
+      '<div><b>'+escapeHtml(loc.name)+'</b> no tiene coordenadas registradas.<br>No es posible consultar el clima para este punto.</div>' +
+    '</div>';
+}
+function renderClimaLoading(){
+  climaScrollEl().innerHTML = '<div class="clima-loading"><div class="clima-spin"></div>Consultando el clima actual…</div>';
+}
+function renderClimaError(loc, msg){
+  climaScrollEl().innerHTML =
+    '<div class="clima-error">No se pudo obtener el clima de <b>'+escapeHtml(loc.name)+'</b>.<br>'+escapeHtml(msg)+
+    '<br><button class="ce-retry" id="climaRetryBtn">Reintentar</button></div>';
+  var btn = document.getElementById('climaRetryBtn');
+  if (btn) btn.addEventListener('click', function(){ fetchWeather(loc, { force:true }); });
+}
+
+function renderClima(loc, data){
+  var cur = data.current || {};
+  var hourly = data.hourly || {};
+  var daily = data.daily || {};
+
+  // índice de la hora actual dentro del arreglo horario (misma zona horaria que "current")
+  var idx = (hourly.time || []).indexOf(cur.time);
+  if (idx < 0) idx = 0;
+  if (typeof cur.uv_index !== 'number' && hourly.uv_index) cur.uv_index = hourly.uv_index[idx];
+  if (typeof cur.visibility !== 'number' && hourly.visibility) cur.visibility = hourly.visibility[idx];
+
+  var wmo = wmoInfo(cur.weather_code);
+  var estado = estadoMeteorologico(cur);
+  var updatedAt = new Date(data._fetchedAt);
+
+  var html = '';
+  html += '<div class="clima-head">' +
+    '<div><h3>'+escapeHtml(loc.name)+'</h3>' +
+    '<div class="ch-coord">'+loc.ll[0].toFixed(6)+', '+loc.ll[1].toFixed(6)+'</div></div>' +
+    '<button class="clima-refresh" id="climaRefreshBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 4v6h-6"/></svg>Actualizar</button>' +
+  '</div>';
+  html += '<div class="clima-updated">Actualizado '+updatedAt.toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit',timeZone:'America/Guayaquil'})+' (hora Ecuador)</div>';
+  html += '<div class="clima-badge '+estado.nivel+'"><span class="dot"></span>ESTADO METEOROLÓGICO: '+estado.texto+'</div>';
+
+  html += '<div class="clima-hero">' +
+    '<div class="ch-ico">'+wmo.ico+'</div>' +
+    '<div><div class="ch-temp">'+(typeof cur.temperature_2m === 'number' ? Math.round(cur.temperature_2m)+'°C' : '—')+'</div>' +
+    '<div class="ch-feel">Sensación: '+(typeof cur.apparent_temperature === 'number' ? Math.round(cur.apparent_temperature)+'°C' : '—')+'</div>' +
+    '<div class="ch-desc">'+wmo.label+'</div></div>' +
+  '</div>';
+
+  function card(ico, label, value, unit){
+    return '<div class="clima-card"><div class="cc-k">'+ico+' '+label+'</div><div class="cc-v">'+value+(unit?' <small>'+unit+'</small>':'')+'</div></div>';
+  }
+  html += '<div class="clima-grid">' +
+    card('💧','Humedad', typeof cur.relative_humidity_2m==='number'?Math.round(cur.relative_humidity_2m):'—','%') +
+    card('🌬️','Viento', typeof cur.wind_speed_10m==='number'?Math.round(cur.wind_speed_10m):'—','km/h') +
+    card('💨','Rachas', typeof cur.wind_gusts_10m==='number'?Math.round(cur.wind_gusts_10m):'—','km/h') +
+    card('🌧️','Precipitación', typeof cur.precipitation==='number'?cur.precipitation.toFixed(1):'—','mm') +
+    card('☀️','Índice UV', typeof cur.uv_index==='number'?cur.uv_index.toFixed(1):'—','') +
+    card('👁️','Visibilidad', typeof cur.visibility==='number'?(cur.visibility/1000).toFixed(1):'—','km') +
+    card('⏱️','Presión', typeof cur.surface_pressure==='number'?Math.round(cur.surface_pressure):'—','hPa') +
+    card('🧭','Dir. viento', typeof cur.wind_direction_10m==='number'?Math.round(cur.wind_direction_10m)+'°':'—','') +
+  '</div>';
+
+  if (hourly.time && hourly.time.length) {
+    var hItems = [];
+    for (var i = idx; i < Math.min(idx + 13, hourly.time.length); i++) {
+      var hi = wmoInfo(hourly.weather_code ? hourly.weather_code[i] : null);
+      hItems.push('<div class="hourly-item">' +
+        '<div class="hi-h">'+(i===idx?'Ahora':fmtHour(hourly.time[i]))+'</div>' +
+        '<div class="hi-ico">'+hi.ico+'</div>' +
+        '<div class="hi-t">'+(hourly.temperature_2m?Math.round(hourly.temperature_2m[i])+'°':'—')+'</div>' +
+        '<div class="hi-p">'+(hourly.precipitation?hourly.precipitation[i].toFixed(1):'0.0')+'mm</div>' +
+      '</div>');
+    }
+    html += '<div class="clima-section"><h4>Pronóstico por hora</h4><div class="clima-hourly">'+hItems.join('')+'</div></div>';
+
+    var chartEnd = Math.min(idx + 24, hourly.time.length);
+    var tempSlice = hourly.temperature_2m ? hourly.temperature_2m.slice(idx, chartEnd) : [];
+    var precipSlice = hourly.precipitation ? hourly.precipitation.slice(idx, chartEnd) : [];
+    var tChart = climaLineChart(tempSlice, '#38b6ff');
+    var pChart = climaBarChart(precipSlice, '#7c8cff');
+    if (tChart) html += '<div class="clima-chart-wrap"><div class="cw-label">Temperatura — próximas 24h</div>' + tChart + '</div>';
+    if (precipSlice.length > 1) html += '<div class="clima-chart-wrap"><div class="cw-label">Precipitación — próximas 24h</div>' + pChart + '</div>';
+  }
+
+  if (daily.time && daily.time.length) {
+    var dItems = daily.time.map(function(day, i){
+      var di = wmoInfo(daily.weather_code ? daily.weather_code[i] : null);
+      var pmax = daily.precipitation_probability_max ? daily.precipitation_probability_max[i] : null;
+      return '<div class="daily-item">' +
+        '<span class="di-day">'+fmtDay(day, i)+'</span>' +
+        '<span class="di-ico">'+di.ico+'</span>' +
+        '<span class="di-rain">'+(typeof pmax==='number' ? '💧 '+pmax+'%' : '')+'</span>' +
+        '<span class="di-temps">'+(daily.temperature_2m_max?Math.round(daily.temperature_2m_max[i])+'°':'—')+' <span class="lo">'+(daily.temperature_2m_min?Math.round(daily.temperature_2m_min[i])+'°':'—')+'</span></span>' +
+      '</div>';
+    }).join('');
+    html += '<div class="clima-section"><h4>Pronóstico extendido</h4><div class="clima-daily">'+dItems+'</div></div>';
+  }
+
+  // Alertas: no existe una fuente oficial gratuita de alertas meteorológicas
+  // para Ecuador integrada aquí, así que esta sección nunca inventa una
+  // alerta — reporta honestamente que no hay ninguna activa.
+  html += '<div class="clima-section"><h4>Alertas meteorológicas</h4>' +
+    '<div class="clima-alert"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>' +
+    'No existen alertas meteorológicas activas reportadas para este punto.</div></div>';
+
+  climaScrollEl().innerHTML = html;
+  var refreshBtn = document.getElementById('climaRefreshBtn');
+  if (refreshBtn) refreshBtn.addEventListener('click', function(){ fetchWeather(loc, { force:true }); });
+}
+
+function fetchWeather(loc, opts){
+  opts = opts || {};
+  if (!loc || !loc.ll) { renderClimaNoCoords(loc || {name:'—'}); return; }
+
+  var cached = CLIMA_CACHE[loc.id];
+  if (!opts.force && cached && (Date.now() - cached.ts) < CLIMA_TTL_MS) {
+    renderClima(loc, cached.data);
+    return;
+  }
+
+  renderClimaLoading();
+  var url = 'https://api.open-meteo.com/v1/forecast' +
+    '?latitude=' + loc.ll[0] + '&longitude=' + loc.ll[1] +
+    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,is_day' +
+    '&hourly=temperature_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,uv_index,visibility,relative_humidity_2m' +
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,uv_index_max' +
+    '&timezone=America%2FGuayaquil&forecast_days=7';
+
+  fetch(url).then(function(res){
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }).then(function(data){
+    data._fetchedAt = Date.now();
+    CLIMA_CACHE[loc.id] = { data: data, ts: Date.now() };
+    if (activeLoc && activeLoc.id === loc.id && activeTab === 'clima') renderClima(loc, data);
+  }).catch(function(err){
+    if (activeLoc && activeLoc.id === loc.id && activeTab === 'clima') renderClimaError(loc, err.message || 'Error de conexión.');
+  });
+}
+
+// ---- tabs del panel lateral (Coordenadas / Clima) ----
+var coordViewEl = document.getElementById('coordView');
+var climaViewEl = document.getElementById('climaView');
+document.getElementById('paneTabs').addEventListener('click', function(e){
+  var btn = e.target.closest('.pane-tab[data-tab]');
+  if (!btn) return;
+  activeTab = btn.getAttribute('data-tab');
+  document.querySelectorAll('.pane-tab').forEach(function(b){ b.classList.toggle('active', b === btn); });
+  coordViewEl.style.display = activeTab === 'coord' ? '' : 'none';
+  climaViewEl.style.display = activeTab === 'clima' ? '' : 'none';
+  if (activeTab === 'clima') {
+    if (!activeLoc) renderClimaEmpty();
+    else if (!activeLoc.ll) renderClimaNoCoords(activeLoc);
+    else fetchWeather(activeLoc);
+  }
+});
 </script>
 </body>
 </html>
