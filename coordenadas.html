@@ -384,9 +384,16 @@ qfProp.innerHTML = '<button class="qf-chip active" data-g="">Todas</button>' + g
 
 // ---- mapa: vista satelital de alta resolución (Esri World Imagery) ----
 var map = L.map('map', { zoomControl: false, attributionControl: true, maxZoom: 20, minZoom: 3 }).setView([-2.3, -79.9], 8);
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+var esriLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
   attribution: '&copy; Esri, Maxar, Earthstar Geographics', maxZoom: 20, maxNativeZoom: 19, minZoom: 3
 }).addTo(map);
+// Capa alternativa (misma zona, otra fecha de captura) — útil cuando Esri
+// trae nubes sobre una propiedad puntual; se alterna desde el selector de
+// capas arriba a la derecha, Esri sigue siendo la que carga por defecto.
+var mapTilerLayer = L.tileLayer('https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=iEPfGFj705SocPnbhvww', {
+  attribution: '&copy; MapTiler &copy; OpenStreetMap contributors', tileSize: 512, zoomOffset: -1, maxZoom: 20, minZoom: 3
+});
+L.control.layers({ 'Esri (por defecto)': esriLayer, 'MapTiler (alternativa)': mapTilerLayer }, null, { position: 'topright', collapsed: true }).addTo(map);
 var boundariesLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
   maxZoom: 20, maxNativeZoom: 19, minZoom: 3, opacity: .85, pane: 'shadowPane'
 }).addTo(map);
