@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeleArseg · Dashboards por Cliente</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg-void:#05070f;
+    --bg-panel:rgba(11,17,38,0.74);
+    --bg-panel-solid:#0b1126;
+    --line:rgba(126,158,224,0.22);
+    --line-strong:rgba(126,158,224,0.45);
+    --cyan:#33e7ff;
+    --cyan-dim:rgba(51,231,255,0.16);
+    --amber:#ffb020;
+    --amber-dim:rgba(255,176,32,0.16);
+    --green:#3ee08a;
+    --green-dim:rgba(62,224,138,0.14);
+    --text-hi:#eef3ff;
+    --text-mid:#a9b6d8;
+    --text-low:#66739a;
+    --radius:2px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg-void);
+    color:var(--text-hi);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  .bg-grid{
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:56px 56px;
+    opacity:0.12;
+    z-index:0;
+  }
+  .bg-vignette{
+    position:fixed; inset:0;
+    background:radial-gradient(ellipse at 50% 0%, rgba(51,231,255,0.06) 0%, transparent 55%),
+               radial-gradient(ellipse at 50% 100%, rgba(255,176,32,0.05) 0%, transparent 55%);
+    z-index:0;
+  }
+  .scanline{
+    position:fixed; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity:0.35;
+    animation:sweep 7s linear infinite;
+    z-index:1;
+    pointer-events:none;
+  }
+  @keyframes sweep{
+    0%{ top:0%; opacity:0; }
+    5%{ opacity:0.35; }
+    95%{ opacity:0; }
+    100%{ top:100%; opacity:0; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .scanline{animation:none; display:none;}
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  .statusbar{
+    position:relative; z-index:5;
+    display:flex; align-items:center; gap:22px;
+    padding:14px 24px;
+    background:rgba(5,7,15,0.55);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    color:var(--text-mid);
+    flex-wrap:wrap;
+  }
+  .statusbar .back{
+    display:flex; align-items:center; gap:6px;
+    color:var(--text-mid);
+    text-decoration:none;
+    text-transform:uppercase;
+    transition:color .2s;
+    margin-right:auto;
+  }
+  .statusbar .back:hover{ color:var(--cyan); }
+  .statusbar .back svg{ width:13px; height:13px; }
+  .statusbar .seg{display:flex; align-items:center; gap:8px;}
+  .statusbar .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 8px 1px var(--green);
+  }
+  .statusbar strong{color:var(--text-hi); font-weight:500;}
+
+  .hero{
+    position:relative; z-index:5;
+    max-width:1320px;
+    margin:0 auto;
+    padding:48px 20px 8px;
+  }
+  .eyebrow{
+    position:relative;
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--amber);
+    text-transform:uppercase;
+    padding-bottom:10px;
+    margin-bottom:14px;
+  }
+  .eyebrow::after{
+    content:'';
+    position:absolute; left:0; bottom:0;
+    width:64px; height:2px;
+    background:linear-gradient(90deg, var(--amber), transparent);
+  }
+  .hero h1{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:700;
+    font-size:clamp(28px, 4vw, 44px);
+    letter-spacing:0.01em;
+    color:var(--text-hi);
+    margin-bottom:14px;
+  }
+  .hero p{
+    max-width:760px;
+    font-size:14.5px;
+    line-height:1.65;
+    color:var(--text-mid);
+  }
+
+  .notice{
+    position:relative; z-index:5;
+    max-width:1320px;
+    margin:22px auto 0;
+    padding:0 20px;
+  }
+  .notice-box{
+    display:flex; gap:12px; align-items:flex-start;
+    background:var(--amber-dim);
+    border:1px solid rgba(255,176,32,0.4);
+    border-radius:var(--radius);
+    padding:14px 16px;
+    color:var(--text-mid);
+    font-size:12.5px;
+    line-height:1.55;
+  }
+  .notice-box svg{ flex:none; width:16px; height:16px; color:var(--amber); margin-top:2px; }
+  .notice-box strong{ color:var(--text-hi); }
+
+  .stations{
+    position:relative; z-index:5;
+    max-width:1320px;
+    margin:34px auto 20px;
+    padding:0 20px;
+  }
+  .stations-label{
+    display:flex; align-items:center; gap:12px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--text-low);
+    text-transform:uppercase;
+    margin-bottom:18px;
+  }
+  .stations-label::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+  .back-to-stations{
+    display:inline-flex; align-items:center; gap:7px; margin-bottom:16px;
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.08em;
+    color:var(--cyan); text-decoration:none; text-transform:uppercase;
+  }
+  .back-to-stations svg{ width:13px; height:13px; }
+  .back-to-stations:hover{ color:var(--amber); }
+  .stat-card.station-card .stat-num{ border-color:var(--amber); color:var(--amber); }
+  .stat-card.station-card:hover .stat-num{ border-color:var(--amber); }
+  .search-wrap{
+    display:flex; align-items:center; gap:10px;
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:3px;
+    padding:11px 14px; margin-bottom:22px; max-width:340px;
+  }
+  .search-wrap svg{ width:15px; height:15px; color:var(--text-low); flex-shrink:0; }
+  .search-wrap input{
+    background:none; border:none; outline:none; width:100%;
+    font-family:'Inter', sans-serif; font-size:13px; color:var(--text-hi);
+  }
+  .search-wrap input::placeholder{ color:var(--text-low); }
+  .search-wrap:focus-within{ border-color:var(--cyan); }
+  .empty-state{
+    display:none; padding:40px 10px; text-align:center;
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--text-low);
+    letter-spacing:0.05em; text-transform:uppercase;
+  }
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:16px;
+  }
+  @media (max-width:1080px){ .stat-grid{ grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width:560px){ .stat-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- dashboard general (panel destacado) ---------- */
+  .general-section{
+    position:relative; z-index:5;
+    max-width:1320px;
+    margin:34px auto 0;
+    padding:0 20px;
+  }
+  .hero-card{
+    display:flex; align-items:center; gap:18px;
+    background:linear-gradient(120deg, rgba(51,231,255,0.09), rgba(255,176,32,0.05));
+    border:1px solid var(--line-strong); border-radius:8px;
+    padding:22px 24px; text-decoration:none; color:inherit;
+    transition:border-color .2s, transform .2s;
+  }
+  .hero-card:hover{ border-color:var(--cyan); transform:translateY(-2px); }
+  .hero-ico{
+    flex-shrink:0; width:52px; height:52px; border-radius:12px;
+    background:var(--cyan-dim); border:1px solid rgba(51,231,255,0.4);
+    display:flex; align-items:center; justify-content:center; color:var(--cyan);
+  }
+  .hero-ico svg{ width:24px; height:24px; }
+  .hero-card-body{ flex:1; min-width:0; }
+  .hero-card-title{
+    font-family:'Chakra Petch', sans-serif; font-weight:700; font-size:16px;
+    color:var(--text-hi); margin-bottom:5px; letter-spacing:0.02em;
+  }
+  .hero-card-desc{ font-size:12.5px; color:var(--text-mid); line-height:1.5; }
+  .hero-btn{
+    flex-shrink:0; display:flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:600;
+    letter-spacing:0.05em; text-transform:uppercase; white-space:nowrap;
+    background:linear-gradient(120deg, var(--cyan), #22c2d9); color:#031018;
+    padding:13px 20px; border-radius:6px;
+    box-shadow:0 8px 20px -8px rgba(51,231,255,0.5);
+  }
+  .hero-btn svg{ width:13px; height:13px; }
+  .hero-card:hover .hero-btn{ filter:brightness(1.08); }
+  @media (max-width:640px){
+    .hero-card{ flex-wrap:wrap; }
+    .hero-btn{ width:100%; justify-content:center; }
+  }
+
+  .stat-card{
+    position:relative;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px 18px 18px;
+    display:flex; flex-direction:column; gap:12px;
+    text-decoration:none;
+    color:inherit;
+    backdrop-filter:blur(4px);
+    transition:transform .26s cubic-bezier(.2,.8,.2,1), border-color .26s, box-shadow .26s;
+    overflow:hidden;
+  }
+  .stat-card::before{
+    content:'';
+    position:absolute; top:0; left:0;
+    width:34px; height:34px;
+    border-top:1.5px solid var(--cyan);
+    border-left:1.5px solid var(--cyan);
+    opacity:0; transition:opacity .26s;
+  }
+  .stat-card:hover::before{ opacity:0.8; }
+  .stat-card:hover{
+    transform:translateY(-4px);
+    border-color:var(--cyan);
+    box-shadow:0 10px 30px -8px rgba(51,231,255,0.3);
+  }
+  .stat-num{
+    display:flex; align-items:center; justify-content:center;
+    width:38px; height:38px;
+    border-radius:50%;
+    border:1.5px solid var(--line-strong);
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    color:var(--cyan);
+    transition:border-color .26s, color .26s;
+  }
+  .stat-card:hover .stat-num{ border-color:var(--cyan); }
+  .stat-title{
+    font-family:'Chakra Petch', sans-serif;
+    font-weight:600;
+    font-size:16px;
+    color:var(--text-hi);
+  }
+  .stat-desc{
+    font-size:12px;
+    color:var(--text-mid);
+    line-height:1.5;
+  }
+  .stat-meta{
+    display:flex; align-items:center; gap:7px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.06em;
+    color:var(--text-low);
+    text-transform:uppercase;
+  }
+  .stat-card{ cursor:pointer; }
+  .stat-arrow{
+    margin-top:auto;
+    display:flex; align-items:center; gap:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.08em;
+    color:var(--text-low);
+    text-transform:uppercase;
+  }
+  .stat-card:hover .stat-arrow{ color:var(--cyan); }
+  .stat-arrow svg{ width:11px; height:11px; }
+
+  footer{
+    position:relative; z-index:5;
+    text-align:center;
+    padding:26px 20px 34px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    color:var(--text-low);
+    border-top:1px solid var(--line);
+    margin-top:20px;
+  }
+
+  /* ---------- modal de enlace presentable ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:100; display:none;
+    align-items:center; justify-content:center;
+    background:rgba(3,5,12,0.78); backdrop-filter:blur(4px);
+    padding:20px;
+  }
+  .modal-overlay.show{ display:flex; }
+  @keyframes modalIn{ from{ opacity:0; transform:translateY(10px) scale(0.97); } to{ opacity:1; transform:translateY(0) scale(1); } }
+  .modal-box{
+    position:relative; width:100%; max-width:440px;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(51,231,255,0.09) 0%, transparent 60%),
+      radial-gradient(ellipse at 100% 100%, rgba(255,176,32,0.07) 0%, transparent 55%),
+      var(--bg-panel-solid);
+    border:1px solid var(--line-strong);
+    border-radius:10px; padding:0 26px 24px;
+    box-shadow:0 30px 80px -15px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.02);
+    overflow:hidden;
+    animation:modalIn .22s ease-out;
+  }
+  .modal-box::before{
+    content:''; display:block; height:3px; margin:0 -26px 24px;
+    background:linear-gradient(90deg, var(--cyan), var(--amber));
+  }
+  .modal-close{
+    position:absolute; top:16px; right:16px; width:28px; height:28px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-mid); background:rgba(255,255,255,0.03); border:1px solid var(--line);
+    border-radius:50%; cursor:pointer; transition:color .2s, border-color .2s;
+  }
+  .modal-close:hover{ color:var(--cyan); border-color:var(--cyan); }
+  .modal-close svg{ width:14px; height:14px; }
+  .modal-header{
+    display:flex; align-items:flex-start; gap:14px;
+    padding-top:4px; margin-bottom:16px;
+  }
+  .modal-num{
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    width:52px; height:52px; border-radius:50%;
+    background:var(--bg-void);
+    border:1.5px solid var(--cyan); color:var(--cyan);
+    box-shadow:0 0 0 4px var(--cyan-dim), 0 0 18px -2px rgba(51,231,255,0.5);
+    font-family:'Chakra Petch', sans-serif; font-weight:700; font-size:17px;
+  }
+  .modal-head-info{ padding-top:2px; }
+  .modal-title{
+    font-family:'Chakra Petch', sans-serif; font-weight:700; font-size:19px;
+    color:var(--text-hi); margin-bottom:8px; line-height:1.25;
+  }
+  .modal-badges{ display:flex; flex-wrap:wrap; gap:6px; }
+  .modal-badge{
+    display:flex; align-items:center; gap:5px;
+    font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:500;
+    letter-spacing:0.04em; text-transform:uppercase;
+    padding:4px 9px; border-radius:20px;
+    border:1px solid var(--line-strong); color:var(--text-mid);
+  }
+  .modal-badge .bdot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--green); box-shadow:0 0 6px 1px var(--green);
+    flex-shrink:0;
+  }
+  .modal-badge.online{ color:var(--green); border-color:rgba(62,224,138,0.35); background:var(--green-dim); }
+  .modal-divider{ height:1px; background:var(--line); margin:0 0 16px; }
+  .modal-desc{ font-size:12.5px; color:var(--text-mid); line-height:1.65; margin-bottom:18px; }
+  .modal-link-label{
+    font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:0.08em;
+    color:var(--text-low); text-transform:uppercase; margin-bottom:7px;
+  }
+  .modal-link-box{
+    display:flex; align-items:center; gap:11px;
+    background:var(--cyan-dim); border:1px solid var(--line-strong); border-radius:6px;
+    padding:12px 14px; margin-bottom:20px;
+  }
+  .modal-link-icon{
+    flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    width:26px; height:26px; border-radius:50%;
+    background:rgba(51,231,255,0.14); border:1px solid rgba(51,231,255,0.35);
+  }
+  .modal-link-icon svg{ width:13px; height:13px; color:var(--cyan); }
+  .modal-link-text{
+    font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--text-hi);
+    word-break:break-all; flex:1; line-height:1.5;
+  }
+  .modal-actions{ display:flex; gap:10px; margin-bottom:16px; }
+  .modal-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:7px;
+    font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:600;
+    letter-spacing:0.05em; text-transform:uppercase; text-decoration:none;
+    padding:12px; border-radius:6px; cursor:pointer; border:1px solid var(--line-strong);
+    background:transparent; color:var(--text-hi); transition:border-color .2s, color .2s, background .2s;
+  }
+  .modal-btn svg{ width:13px; height:13px; }
+  .modal-btn:hover{ border-color:var(--cyan); color:var(--cyan); }
+  .modal-btn.primary{
+    background:linear-gradient(135deg, var(--cyan), #22c2d9); border-color:var(--cyan); color:#031018;
+    box-shadow:0 8px 20px -8px rgba(51,231,255,0.5);
+  }
+  .modal-btn.primary:hover{ filter:brightness(1.08); color:#031018; }
+  .modal-copied{ color:var(--green) !important; border-color:var(--green) !important; }
+  .modal-foot{
+    display:flex; align-items:center; gap:7px;
+    font-size:11px; color:var(--text-low); line-height:1.5;
+  }
+  .modal-foot svg{ width:12px; height:12px; flex-shrink:0; color:var(--text-low); }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-vignette"></div>
+<div class="scanline"></div>
+
+<div class="statusbar">
+  <a class="back" href="plan-emergencia-2026.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    VOLVER AL PANEL
+  </a>
+  <div class="seg"><span class="dot"></span><strong>REGISTRO ACTIVO</strong></div>
+  <div class="seg" id="clock">— — : — — : — —</div>
+</div>
+
+<div class="hero">
+  <div class="eyebrow">Generales · Dashboards por Cliente</div>
+  <h1 id="heroTitle">DASHBOARDS POR CLIENTE</h1>
+  <p id="heroDesc">Selecciona una estación para ver los dashboards de los clientes que maneja.</p>
+</div>
+
+<div class="general-section" id="generalSection">
+  <a class="hero-card" href="https://telearsegsupervision.github.io/Matriz-General-2026/DASHBOARD_GENERAL.html" target="_blank" rel="noopener">
+    <div class="hero-ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 9l-5 5-3-3-4 4"/></svg>
+    </div>
+    <div class="hero-card-body">
+      <div class="hero-card-title">MATRIZ GENERAL</div>
+      <div class="hero-card-desc">Incidentes, estadísticas y hojas de cálculo por propiedad de todas las estaciones.</div>
+    </div>
+    <span class="hero-btn">
+      Abrir Dashboard
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+    </span>
+  </a>
+</div>
+
+<div class="stations">
+  <a class="back-to-stations" id="backToStations" href="javascript:void(0)" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    VOLVER A ESTACIONES
+  </a>
+  <div class="stations-label" id="clientLabel">8 estaciones</div>
+  <div class="search-wrap" id="searchWrap" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="clientSearch" placeholder="Buscar cliente...">
+  </div>
+  <div class="stat-grid" id="statGrid"></div>
+</div>
+
+<footer>TELEARSEG © SISTEMA DE MONITOREO Y SEGURIDAD — DASHBOARDS POR CLIENTE</footer>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose" type="button" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="modal-header">
+      <div class="modal-num" id="modalNum"></div>
+      <div class="modal-head-info">
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-badges">
+          <div class="modal-badge online"><span class="bdot"></span>En línea</div>
+          <div class="modal-badge" id="modalEstBadge"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-desc" id="modalDesc"></div>
+    <div class="modal-link-label">Enlace del dashboard</div>
+    <div class="modal-link-box">
+      <div class="modal-link-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11.5 4.5"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L12.5 19.5"/></svg>
+      </div>
+      <span class="modal-link-text" id="modalLinkText"></span>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" id="modalCopyBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar enlace
+      </button>
+      <a class="modal-btn primary" id="modalOpenBtn" href="#" target="_blank" rel="noopener">
+        Abrir dashboard
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+      </a>
+    </div>
+    <div class="modal-foot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Comparte este enlace únicamente con personal autorizado.
+    </div>
+  </div>
+</div>
+
+<script>
+const clientes = [
+  { nombre:'EXPALSA', est:[1,2], href:'https://telearsegsupervision.github.io/Panel-TeleArseg---Expalsa-/EXPALSA.html' },
+  { nombre:'GRUPO VASCO', est:[1], href:'https://telearsegsupervision.github.io/GRUPO-VASCO---DASHBOARD/GRUPOVASCO.html' },
+  { nombre:'OMARSA', est:[1], href:'https://telearsegsupervision.github.io/OMARSA---DASHBOARD/OMARSA.html' },
+  { nombre:'HCDAS LANEC COSTA', est:[3], href:'https://telearsegsupervision.github.io/HACIENDAS-LANEC/HACIENDASLANEC.html' },
+  { nombre:'LANEC TAURA', est:[3], href:'https://telearsegsupervision.github.io/LANEC-TAURA---CAMARONERAS/LANECTAURA.html' },
+  { nombre:'GARITAS LANEC', est:[3], href:'https://telearsegsupervision.github.io/GARITAS-LANEC-COSTA/GARITASLANECCOSTA.html' },
+  { nombre:'PACIFICAM TAURA', est:[3], href:'https://telearsegsupervision.github.io/Panel-TeleArseg---Pacificam-Taura/pacifican.html' },
+  { nombre:'LUKMAR', est:[4], href:'https://telearsegsupervision.github.io/LUKMAR---DASHBOARD/LUKMAR.html' },
+  { nombre:'ING. FARAH', est:[4], href:'https://telearsegsupervision.github.io/CLIENTE---ING.-XAVIER-FARAH/XAVIERFARAH.html' },
+  { nombre:'ING. DIEGO GALLARDO', est:[4], href:'https://telearsegsupervision.github.io/ING.-DIEGO-GALLARDO---DASHBOARD/DIEGOGALLARDO.html' },
+  { nombre:'ING. ALEJANDRO CRUZ', est:[5], href:'https://telearsegsupervision.github.io/ING.-ALEJANDRO-CRUZ---DASHBOARD/ALEJANDROCRUZ.html' },
+  { nombre:'DRA. ANA BRITO', est:[5], href:'https://telearsegsupervision.github.io/DR.-ANA-BRITO---DASHBOARD/ANABRITO.html' },
+  { nombre:'ING. SEUNG YEO', est:[5], href:'https://telearsegsupervision.github.io/ING.-SEUNG-YEO---DASHBOARD/SEUNGYEO.html' },
+  { nombre:'ING. MARCOS CASTILLO', est:[5], href:'https://telearsegsupervision.github.io/M.C.L---Dashboard/M.C.L.html' },
+  { nombre:'CULSARO', est:[5], href:'https://telearsegsupervision.github.io/Culsaro---Dashboard/CULSARO.html' },
+  { nombre:'CORPORACION ARAY', est:[5], href:'https://telearsegsupervision.github.io/Corporacion-Aray---Dashboard/CORPORACION%20ARAY.html' },
+  { nombre:'HOTEL WYNDHAM MANTA SAIL PLAZA', est:[6], href:'https://telearsegsupervision.github.io/HOTEL-WYNDHAM---DASHBOARD/WYNDHAM.html' },
+  { nombre:'CEIBOS', est:[6], href:'https://telearsegsupervision.github.io/CEIBOS---DASHBOARD/CEIBOS.html' },
+  { nombre:'IMPALA TERMINALS', est:[6], href:'https://telearsegsupervision.github.io/IMPALA-TERMINALS---DASHBOARD/IMPALA.html' },
+  { nombre:'DIMASS', est:[5], href:'https://telearsegsupervision.github.io/DIMASS---DASHBOARD/DIMAS.html' },
+  { nombre:'GRUPO SANTOS', est:[7], href:'https://telearsegsupervision.github.io/GRUPO-SANTOS---DASHBOARD/GRUPO_SANTOS.html' },
+  { nombre:'TUMBES PA', est:[7], href:'https://telearsegsupervision.github.io/TUMBES-PA---DASHBOARD/TUMBES_PA.html' },
+  { nombre:'CANAL DE GUAYAQUIL', est:[7], href:'https://telearsegsupervision.github.io/CANAL-DE-GUAYAQUIL---DASHBOARD/CANAL_DE_GUAYAQUIL.html' },
+  { nombre:'PESCASOL', est:[7], href:'https://telearsegsupervision.github.io/PESCASOL---DASHBOARD/PESCASOL.html' },
+  { nombre:'VITABAL S.A', est:[7], href:'https://telearsegsupervision.github.io/Vitabal-S.A---Dashboard/VITABAL.html' },
+  { nombre:'CRISOMAR', est:[7], href:'https://telearsegsupervision.github.io/Crisomar---Dashboard/CRISOMAR.html' },
+  { nombre:'GRUPO CACESA', est:[8], href:'https://telearsegsupervision.github.io/GRUPO-CACESA---HONDURAS/GRUPO_CACESA.html' },
+  { nombre:'BIOMAR CAMARAS', est:[8], href:'https://telearsegsupervision.github.io/BIOMAR---DASHBOARD/BIOMAR.html' },
+  { nombre:'LA ESMERALDA', est:[8], href:'https://telearsegsupervision.github.io/Esmeralda---Dashboard/LA%20ESMERALDA.html' },
+  { nombre:'BIOMAR GPS', est:[8], href:'https://telearsegsupervision.github.io/BIOMAR-GPS---DASHBOARD/BIOMAR_GPS.html' },
+  { nombre:'HACIENDA PALO SANTO', est:[8], href:'https://telearsegsupervision.github.io/Hacienda-Palo-Santo---Dashboard/HACIENDA%20PALO%20SANTO.html' },
+  { nombre:'DURANCOCOA', est:[8], href:'https://telearsegsupervision.github.io/Duran-Cocoa---Dashboard/DURANCOCOA.html' }
+];
+
+function initials(name){
+  const words = name.replace(/^ING\.|^DRA\.|^LIC\./,'').trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return '??';
+  if (words.length === 1) return words[0].slice(0,2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+function norm(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+
+const grid = document.getElementById('statGrid');
+const emptyState = document.createElement('div');
+emptyState.className = 'empty-state';
+emptyState.textContent = 'SIN RESULTADOS PARA ESA BÚSQUEDA';
+grid.parentElement.appendChild(emptyState);
+
+const heroTitle = document.getElementById('heroTitle');
+const heroDesc = document.getElementById('heroDesc');
+const clientLabel = document.getElementById('clientLabel');
+const backToStations = document.getElementById('backToStations');
+const searchWrap = document.getElementById('searchWrap');
+const clientSearch = document.getElementById('clientSearch');
+const generalSection = document.getElementById('generalSection');
+
+let currentEst = null; // null = vista de estaciones
+
+function renderStations(){
+  currentEst = null;
+  heroTitle.textContent = 'DASHBOARDS POR CLIENTE';
+  heroDesc.textContent = 'Selecciona una estación para ver los dashboards de los clientes que maneja.';
+  backToStations.style.display = 'none';
+  searchWrap.style.display = 'none';
+  generalSection.style.display = 'block';
+  clientSearch.value = '';
+  clientLabel.textContent = '8 estaciones';
+
+  grid.innerHTML = '';
+  let visible = 0;
+  for (let n = 1; n <= 8; n++){
+    const count = clientes.filter(c => c.est.includes(n)).length;
+    if (!count) continue;
+    visible++;
+    const el = document.createElement('div');
+    el.className = 'stat-card station-card';
+    el.innerHTML = `
+      <div class="stat-num">${n}</div>
+      <div class="stat-title">ESTACIÓN ${n}</div>
+      <div class="stat-desc">${count} cliente${count===1?'':'s'} con dashboard de monitoreo.</div>
+      <div class="stat-meta">EN LÍNEA</div>
+      <div class="stat-arrow">Ver clientes<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+    `;
+    el.addEventListener('click', () => renderStationClients(n));
+    grid.appendChild(el);
+  }
+  emptyState.style.display = 'none';
+}
+
+function renderStationClients(n){
+  currentEst = n;
+  heroTitle.textContent = `ESTACIÓN ${n} · CLIENTES`;
+  heroDesc.textContent = `Dashboards de monitoreo de los clientes que maneja la Estación ${n}.`;
+  backToStations.style.display = 'inline-flex';
+  searchWrap.style.display = 'flex';
+  generalSection.style.display = 'none';
+  clientSearch.value = '';
+  filterStationClients('');
+}
+
+function filterStationClients(filter){
+  const q = norm(filter);
+  const list = clientes.filter(c => c.est.includes(currentEst));
+  grid.innerHTML = '';
+  let visible = 0;
+  list.forEach(cl => {
+    if (q && norm(cl.nombre).indexOf(q) === -1) return;
+    visible++;
+    const el = document.createElement('div');
+    el.className = 'stat-card';
+    el.innerHTML = `
+      <div class="stat-num">${initials(cl.nombre)}</div>
+      <div class="stat-title">${cl.nombre}</div>
+      <div class="stat-desc">Dashboard de monitoreo — incidentes, cámaras y reportes mensuales.</div>
+      <div class="stat-meta">EN LÍNEA</div>
+      <div class="stat-arrow">Ver enlace<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+    `;
+    el.addEventListener('click', () => openModal(cl));
+    grid.appendChild(el);
+  });
+  emptyState.style.display = visible ? 'none' : 'block';
+  clientLabel.textContent = visible + (visible===1?' cliente':' clientes') + ` · Estación ${currentEst}`;
+}
+
+clientSearch.addEventListener('input', e => filterStationClients(e.target.value.trim()));
+backToStations.addEventListener('click', renderStations);
+renderStations();
+
+// ---------- modal de enlace presentable ----------
+const modalOverlay = document.getElementById('modalOverlay');
+const modalCopyBtn = document.getElementById('modalCopyBtn');
+let copyResetTimer = null;
+
+function openModal(cl){
+  document.getElementById('modalNum').textContent = initials(cl.nombre);
+  document.getElementById('modalTitle').textContent = cl.nombre;
+  document.getElementById('modalDesc').textContent = 'Dashboard de monitoreo — incidentes, cámaras y reportes mensuales.';
+  document.getElementById('modalEstBadge').textContent = cl.est.length > 1 ? `Estaciones ${cl.est.join(', ')}` : `Estación ${cl.est[0]}`;
+  document.getElementById('modalLinkText').textContent = cl.href;
+  document.getElementById('modalOpenBtn').href = cl.href;
+  modalCopyBtn.classList.remove('modal-copied');
+  modalCopyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar enlace';
+  modalCopyBtn.onclick = () => copyLink(cl.href);
+  modalOverlay.classList.add('show');
+}
+function closeModal(){
+  modalOverlay.classList.remove('show');
+}
+function copyLink(link){
+  navigator.clipboard.writeText(link).then(() => {
+    modalCopyBtn.classList.add('modal-copied');
+    modalCopyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Copiado';
+    clearTimeout(copyResetTimer);
+    copyResetTimer = setTimeout(() => {
+      modalCopyBtn.classList.remove('modal-copied');
+      modalCopyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar enlace';
+    }, 1800);
+  });
+}
+document.getElementById('modalClose').addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function tick(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,'0');
+  document.getElementById('clock').textContent =
+    `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} · ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+tick();
+setInterval(tick, 1000);
+</script>
+
+</body>
+</html>
