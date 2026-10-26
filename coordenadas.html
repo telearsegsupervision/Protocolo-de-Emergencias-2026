@@ -327,6 +327,87 @@
   .clima-chart-wrap svg{display:block;width:100%;height:auto;}
   .clima-chart-wrap .cw-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:8px;}
 
+  /* ===== 🌦️ Clima — vista completa (estilo MSN Tiempo) ===== */
+  .cf-overlay{
+    position:fixed;inset:0;z-index:3000;background:rgba(2,5,11,.72);backdrop-filter:blur(4px);
+    display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .16s ease;
+  }
+  .cf-overlay.show{opacity:1;pointer-events:auto;}
+  .cf-box{
+    width:100%;max-width:980px;max-height:92vh;overflow-y:auto;background:var(--panel-solid);
+    border:1px solid var(--border);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.6);
+  }
+  .cf-topbar{
+    position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:16px 20px;background:linear-gradient(180deg,#0c1626,#0a1220 90%);border-bottom:1px solid var(--border);
+  }
+  .cf-loc{display:flex;align-items:center;gap:10px;min-width:0;}
+  .cf-loc svg{color:var(--accent);flex-shrink:0;}
+  .cf-loc div{min-width:0;}
+  .cf-loc h2{margin:0;font-size:15.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cf-loc small{font-family:monospace;font-size:10px;color:var(--muted);}
+  .cf-close{
+    width:32px;height:32px;border-radius:9px;border:1px solid var(--border);background:var(--panel2);color:var(--muted);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .cf-close:hover{color:var(--text);border-color:var(--accent);}
+
+  .cf-body{padding:20px;}
+  .cf-alert-banner{
+    display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:10px;font-size:11.5px;font-weight:800;
+    margin-bottom:16px;letter-spacing:.02em;
+  }
+  .cf-alert-banner.v{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.3);}
+  .cf-alert-banner.a{background:rgba(234,179,8,.12);color:#fbbf24;border:1px solid rgba(234,179,8,.3);}
+  .cf-alert-banner.r{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3);}
+
+  .cf-hero-row{display:flex;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+  .cf-hero{
+    flex:1 1 300px;background:linear-gradient(135deg,rgba(56,182,255,.1),rgba(124,140,255,.05));
+    border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;align-items:center;gap:18px;
+  }
+  .cf-hero .ic{font-size:58px;line-height:1;}
+  .cf-hero .temp{font-size:48px;font-weight:800;line-height:1;}
+  .cf-hero .feel{font-size:11.5px;color:var(--muted);margin-top:5px;}
+  .cf-hero .desc{font-size:13.5px;font-weight:700;margin-top:8px;}
+  .cf-radar{flex:1 1 280px;border-radius:16px;overflow:hidden;border:1px solid var(--border);position:relative;min-height:180px;background:#0a1220;}
+  .cf-radar #cfRadarMap{position:absolute;inset:0;}
+  .cf-dark-tiles{filter:invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.92) saturate(0.7);}
+  .cf-radar-label{position:absolute;bottom:8px;left:10px;z-index:500;font-size:9px;color:#cfe3ff;background:rgba(5,10,20,.65);padding:3px 8px;border-radius:7px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+
+  .cf-days{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:18px;}
+  .cf-day{
+    flex:0 0 108px;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px 10px;
+    text-align:center;cursor:default;
+  }
+  .cf-day.today{border-color:var(--accent);}
+  .cf-day .d-name{font-size:11px;font-weight:800;text-transform:capitalize;margin-bottom:6px;}
+  .cf-day .d-ico{font-size:26px;margin-bottom:6px;}
+  .cf-day .d-rain{font-size:10px;color:#7fc8ff;font-weight:700;margin-bottom:4px;}
+  .cf-day .d-temps{font-family:monospace;font-weight:800;font-size:12.5px;}
+  .cf-day .d-temps .lo{color:var(--muted);font-weight:600;}
+
+  .cf-tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--border);margin-bottom:16px;}
+  .cf-tab{
+    flex:0 0 auto;padding:9px 14px;border-radius:9px 9px 0 0;border:1px solid transparent;background:transparent;
+    color:var(--muted);font-family:'Sora',sans-serif;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;
+  }
+  .cf-tab:hover{color:var(--text);}
+  .cf-tab.active{color:var(--accent);background:var(--panel2);border-color:var(--border);border-bottom-color:var(--panel2);margin-bottom:-1px;}
+
+  .cf-chart-card{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:18px;}
+  .cf-chart-card .cc-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:12px;}
+  .cf-chart-scroll{overflow-x:auto;}
+  .cf-chart-svg{display:block;height:170px;}
+  .cf-chart-hours{display:flex;margin-top:6px;}
+  .cf-chart-hours span{flex-shrink:0;font-size:9px;color:var(--muted);text-align:center;font-weight:600;}
+
+  .cf-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+  .cf-detail-card{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:16px;}
+  .cf-detail-card .dc-k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:8px;}
+  .cf-detail-card .dc-v{font-size:22px;font-weight:800;margin-bottom:6px;}
+  .cf-detail-card .dc-sub{font-size:10.5px;color:var(--muted);line-height:1.5;}
+
   @media (max-width:1100px){
     .tagline{display:none;}
     .side-pane{display:none;}
@@ -513,6 +594,11 @@
       </div>
     </aside>
   </div>
+</div>
+
+<!-- ===== 🌦️ Clima — vista completa ===== -->
+<div class="cf-overlay" id="cfOverlay">
+  <div class="cf-box" id="cfBox"></div>
 </div>
 
 <script>
@@ -1070,7 +1156,10 @@ function renderClima(loc, data){
   html += '<div class="clima-head">' +
     '<div><h3>'+escapeHtml(loc.name)+'</h3>' +
     '<div class="ch-coord">'+loc.ll[0].toFixed(6)+', '+loc.ll[1].toFixed(6)+'</div></div>' +
+    '<div style="display:flex;gap:6px;flex-shrink:0;">' +
+    '<button class="clima-refresh" id="climaFullBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>Vista completa</button>' +
     '<button class="clima-refresh" id="climaRefreshBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 4v6h-6"/></svg>Actualizar</button>' +
+    '</div>' +
   '</div>';
   html += '<div class="clima-updated">Actualizado '+updatedAt.toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit',timeZone:'America/Guayaquil'})+' (hora Ecuador)</div>';
   html += '<div class="clima-badge '+estado.nivel+'"><span class="dot"></span>ESTADO METEOROLÓGICO: '+estado.texto+'</div>';
@@ -1142,6 +1231,8 @@ function renderClima(loc, data){
   climaScrollEl().innerHTML = html;
   var refreshBtn = document.getElementById('climaRefreshBtn');
   if (refreshBtn) refreshBtn.addEventListener('click', function(){ fetchWeather(loc, { force:true }); });
+  var fullBtn = document.getElementById('climaFullBtn');
+  if (fullBtn) fullBtn.addEventListener('click', function(){ openClimaFull(loc, data); });
 }
 
 function fetchWeather(loc, opts){
@@ -1157,8 +1248,8 @@ function fetchWeather(loc, opts){
   renderClimaLoading();
   var url = 'https://api.open-meteo.com/v1/forecast' +
     '?latitude=' + loc.ll[0] + '&longitude=' + loc.ll[1] +
-    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,is_day' +
-    '&hourly=temperature_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,uv_index,visibility,relative_humidity_2m' +
+    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,is_day,cloud_cover' +
+    '&hourly=temperature_2m,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m,uv_index,visibility,relative_humidity_2m,cloud_cover,surface_pressure' +
     '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,uv_index_max' +
     '&timezone=America%2FGuayaquil&forecast_days=7';
 
@@ -1173,6 +1264,200 @@ function fetchWeather(loc, opts){
     if (activeLoc && activeLoc.id === loc.id && activeTab === 'clima') renderClimaError(loc, err.message || 'Error de conexión.');
   });
 }
+
+// ============================================================
+// 🌦️ Clima — VISTA COMPLETA (estilo "El tiempo" de MSN): hero +
+// radar + franja de días + pestañas por variable + gráfico grande
+// por hora + tarjetas de detalle. Reutiliza los mismos datos que ya
+// trajo fetchWeather (misma llamada a Open-Meteo, sin pedir de nuevo).
+// ============================================================
+var CF_METRICS = [
+  { k:'general',  label:'Información general' },
+  { k:'precipitation_probability', label:'Precipitación', unit:'%', color:'#38b6ff', kind:'bar' },
+  { k:'wind_speed_10m', label:'Viento', unit:'km/h', color:'#7c8cff', kind:'line' },
+  { k:'relative_humidity_2m', label:'Humedad', unit:'%', color:'#4ade80', kind:'line' },
+  { k:'surface_pressure', label:'Presión', unit:'hPa', color:'#fbbf24', kind:'line' },
+  { k:'uv_index', label:'Ultravioleta', unit:'', color:'#f87171', kind:'bar' }
+];
+var cfState = { loc:null, data:null, metric:'general', radarMap:null, radarLayer:null };
+
+function cfChart(values, color, kind, w, h){
+  w = w || 820; h = h || 150;
+  var pad = 10;
+  var nums = values.map(function(v){ return typeof v === 'number' ? v : null; });
+  var valid = nums.filter(function(v){ return v !== null; });
+  if (valid.length < 2) return '<div style="padding:30px;text-align:center;color:var(--muted);font-size:11.5px;">Sin datos suficientes para graficar.</div>';
+  var min = Math.min.apply(null, valid), max = Math.max.apply(null, valid);
+  if (min === max) { min -= 1; max += 1; }
+  var n = nums.length;
+  var stepX = (w - pad*2) / (n - 1);
+
+  if (kind === 'bar') {
+    var bw = (w - pad*2) / n;
+    var bars = nums.map(function(v, i){
+      if (v === null) return '';
+      var bh = max > 0 ? ((v - Math.min(min,0)) / (max - Math.min(min,0))) * (h - pad*2) : 0;
+      var x = pad + i*bw + bw*0.18;
+      var y = h - pad - bh;
+      return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+(bw*0.64).toFixed(1)+'" height="'+Math.max(bh,1).toFixed(1)+'" rx="2" fill="'+color+'"/>';
+    }).join('');
+    return '<svg class="cf-chart-svg" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="width:'+w+'px;">' + bars + '</svg>';
+  }
+
+  var pts = [], area = [];
+  nums.forEach(function(v, i){
+    if (v === null) return;
+    var x = pad + i*stepX;
+    var y = h - pad - ((v - min) / (max - min)) * (h - pad*2);
+    pts.push(x.toFixed(1)+','+y.toFixed(1));
+  });
+  var areaPts = pts.length ? (pad+','+(h-pad)+' '+pts.join(' ')+' '+(w-pad)+','+(h-pad)) : '';
+  return '<svg class="cf-chart-svg" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="width:'+w+'px;">' +
+    (areaPts ? '<polygon points="'+areaPts+'" fill="'+color+'" opacity="0.12"/>' : '') +
+    '<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>' +
+  '</svg>';
+}
+
+function cfHourLabels(times, n, w){
+  w = w || 820;
+  var items = times.slice(0, n).map(function(t, i){
+    return '<span style="width:'+(w/n).toFixed(1)+'px;">'+(i===0?'Ahora':fmtHour(t))+'</span>';
+  }).join('');
+  return '<div class="cf-chart-hours" style="width:'+w+'px;">'+items+'</div>';
+}
+
+function cfRenderMetricTab(data, idx, metricK){
+  var hourly = data.hourly || {};
+  var n = 24;
+  var end = Math.min(idx + n, (hourly.time||[]).length);
+  var times = (hourly.time||[]).slice(idx, end);
+  var w = Math.max(820, times.length * 46);
+
+  if (metricK === 'general') {
+    var temp = (hourly.temperature_2m||[]).slice(idx, end);
+    var precip = (hourly.precipitation||[]).slice(idx, end);
+    return '<div class="cf-chart-card"><div class="cc-title">Temperatura — próximas 24h</div>' +
+      '<div class="cf-chart-scroll">' + cfChart(temp, '#38b6ff', 'line', w, 150) + cfHourLabels(times, times.length, w) + '</div></div>' +
+      '<div class="cf-chart-card"><div class="cc-title">Precipitación — próximas 24h (mm)</div>' +
+      '<div class="cf-chart-scroll">' + cfChart(precip, '#7c8cff', 'bar', w, 150) + cfHourLabels(times, times.length, w) + '</div></div>';
+  }
+
+  var m = CF_METRICS.filter(function(x){ return x.k === metricK; })[0];
+  var vals = (hourly[metricK]||[]).slice(idx, end);
+  return '<div class="cf-chart-card"><div class="cc-title">'+m.label+' — próximas 24h'+(m.unit?' ('+m.unit+')':'')+'</div>' +
+    '<div class="cf-chart-scroll">' + cfChart(vals, m.color, m.kind, w, 150) + cfHourLabels(times, times.length, w) + '</div></div>';
+}
+
+function cfRenderBody(){
+  var loc = cfState.loc, data = cfState.data;
+  var cur = data.current || {};
+  var hourly = data.hourly || {};
+  var daily = data.daily || {};
+  var idx = (hourly.time || []).indexOf(cur.time);
+  if (idx < 0) idx = 0;
+
+  var wmo = wmoInfo(cur.weather_code);
+  var estado = estadoMeteorologico(cur);
+
+  var html = '<div class="cf-topbar">' +
+    '<div class="cf-loc"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>' +
+    '<div><h2>'+escapeHtml(loc.name)+'</h2><small>'+loc.ll[0].toFixed(6)+', '+loc.ll[1].toFixed(6)+' · Guayas, Ecuador</small></div></div>' +
+    '<button class="cf-close" id="cfCloseBtn">✕</button>' +
+  '</div>';
+
+  html += '<div class="cf-body">';
+  html += '<div class="cf-alert-banner '+estado.nivel+'">' +
+    (estado.nivel==='r' ? '⚠️' : estado.nivel==='a' ? '🔶' : '✅') + ' ' + estado.texto + '</div>';
+
+  html += '<div class="cf-hero-row">';
+  html += '<div class="cf-hero"><div class="ic">'+wmo.ico+'</div><div>' +
+    '<div class="temp">'+(typeof cur.temperature_2m==='number'?Math.round(cur.temperature_2m)+'°C':'—')+'</div>' +
+    '<div class="feel">Sensación térmica '+(typeof cur.apparent_temperature==='number'?Math.round(cur.apparent_temperature)+'°':'—')+'</div>' +
+    '<div class="desc">'+wmo.label+'</div></div></div>';
+  html += '<div class="cf-radar"><div id="cfRadarMap"></div><div class="cf-radar-label">📡 Radar de lluvia en vivo</div></div>';
+  html += '</div>';
+
+  if (daily.time && daily.time.length) {
+    html += '<div class="cf-days">' + daily.time.map(function(day, i){
+      var di = wmoInfo(daily.weather_code ? daily.weather_code[i] : null);
+      var pmax = daily.precipitation_probability_max ? daily.precipitation_probability_max[i] : null;
+      return '<div class="cf-day'+(i===0?' today':'')+'">' +
+        '<div class="d-name">'+fmtDay(day, i)+'</div>' +
+        '<div class="d-ico">'+di.ico+'</div>' +
+        '<div class="d-rain">'+(typeof pmax==='number'?'💧 '+pmax+'%':'')+'</div>' +
+        '<div class="d-temps">'+(daily.temperature_2m_max?Math.round(daily.temperature_2m_max[i])+'°':'—')+' <span class="lo">'+(daily.temperature_2m_min?Math.round(daily.temperature_2m_min[i])+'°':'—')+'</span></div>' +
+      '</div>';
+    }).join('') + '</div>';
+  }
+
+  html += '<div class="cf-tabs" id="cfTabs">' + CF_METRICS.map(function(m){
+    return '<button class="cf-tab'+(m.k===cfState.metric?' active':'')+'" data-metric="'+m.k+'">'+m.label+'</button>';
+  }).join('') + '</div>';
+
+  html += '<div id="cfChartArea">' + cfRenderMetricTab(data, idx, cfState.metric) + '</div>';
+
+  function detailCard(k, v, sub){
+    return '<div class="cf-detail-card"><div class="dc-k">'+k+'</div><div class="dc-v">'+v+'</div><div class="dc-sub">'+sub+'</div></div>';
+  }
+  var precipSum24 = (hourly.precipitation||[]).slice(idx, idx+24).reduce(function(a,b){ return a+(typeof b==='number'?b:0); }, 0);
+  html += '<div class="cf-detail-grid">' +
+    detailCard('Temperatura', (typeof cur.temperature_2m==='number'?Math.round(cur.temperature_2m)+'°':'—'), 'Mín/máx hoy: '+(daily.temperature_2m_min?Math.round(daily.temperature_2m_min[0])+'°':'—')+' / '+(daily.temperature_2m_max?Math.round(daily.temperature_2m_max[0])+'°':'—')) +
+    detailCard('Sensación térmica', (typeof cur.apparent_temperature==='number'?Math.round(cur.apparent_temperature)+'°':'—'), (typeof cur.relative_humidity_2m==='number'&&cur.relative_humidity_2m>=70?'La humedad eleva la sensación térmica.':'Cercana a la temperatura real.')) +
+    detailCard('Cubierta de nubes', (typeof cur.cloud_cover==='number'?cur.cloud_cover+'%':'—'), wmo.label) +
+    detailCard('Precipitación', precipSum24.toFixed(1)+' mm', 'Acumulado estimado en las próximas 24h') +
+  '</div>';
+
+  html += '</div>'; // .cf-body
+  document.getElementById('cfBox').innerHTML = html;
+
+  document.getElementById('cfCloseBtn').addEventListener('click', closeClimaFull);
+  document.querySelectorAll('#cfTabs .cf-tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      cfState.metric = btn.dataset.metric;
+      document.querySelectorAll('#cfTabs .cf-tab').forEach(function(b){ b.classList.toggle('active', b===btn); });
+      document.getElementById('cfChartArea').innerHTML = cfRenderMetricTab(cfState.data, idx, cfState.metric);
+    });
+  });
+
+  cfInitRadar(loc);
+}
+
+// Radar de lluvia vía RainViewer (público, sin API key): últimas 2h de
+// cuadros + mapa centrado en el punto seleccionado.
+function cfInitRadar(loc){
+  var mapEl = document.getElementById('cfRadarMap');
+  if (!mapEl) return;
+  if (cfState.radarMap) { cfState.radarMap.remove(); cfState.radarMap = null; }
+  var map = L.map(mapEl, { zoomControl:false, attributionControl:false, dragging:true, scrollWheelZoom:false }).setView(loc.ll, 8);
+  // OpenStreetMap estándar (gratis, sin clave, sin límite de uso razonable)
+  // con un filtro CSS para oscurecerlo y que combine con el resto del panel.
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { subdomains:'abc', maxZoom:12, className:'cf-dark-tiles' }).addTo(map);
+  L.circleMarker(loc.ll, { radius:6, color:'#38b6ff', fillColor:'#38b6ff', fillOpacity:.9, weight:2 }).addTo(map);
+  cfState.radarMap = map;
+  fetch('https://api.rainviewer.com/public/weather-maps.json').then(function(r){ return r.json(); }).then(function(rv){
+    var frames = rv && rv.radar && rv.radar.past ? rv.radar.past : [];
+    var last = frames[frames.length - 1];
+    if (!last) return;
+    L.tileLayer('https://tilecache.rainviewer.com/v2/radar/' + last.path + '/256/{z}/{x}/{y}/2/1_1.png', { opacity:0.65, maxZoom:12 }).addTo(map);
+  }).catch(function(){ /* sin radar disponible: el mapa base sigue funcionando */ });
+  setTimeout(function(){ if (cfState.radarMap) cfState.radarMap.invalidateSize(); }, 150);
+}
+
+function openClimaFull(loc, data){
+  cfState.loc = loc; cfState.data = data; cfState.metric = 'general';
+  cfRenderBody();
+  document.getElementById('cfOverlay').classList.add('show');
+}
+function closeClimaFull(){
+  document.getElementById('cfOverlay').classList.remove('show');
+  if (cfState.radarMap) { cfState.radarMap.remove(); cfState.radarMap = null; }
+}
+document.getElementById('cfOverlay').addEventListener('click', function(e){
+  if (e.target.id === 'cfOverlay') closeClimaFull();
+});
+window.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && document.getElementById('cfOverlay').classList.contains('show')) closeClimaFull();
+});
 
 // ---- tabs del panel lateral (Coordenadas / Clima) ----
 var coordViewEl = document.getElementById('coordView');
